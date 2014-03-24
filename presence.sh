@@ -12,12 +12,12 @@ patrick="a:f5:90:44:24:a4"
 guests="5:77:4f:e8:87:77|89:0b:91:ea:d2:33|d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[5-8][0-9]"
 
 looptime=30	# how often we check in seconds
-presence=20	# how many loops until somebody is no longer present
+presence=45	# how many loops until somebody is no longer present
 
 
 for name in $@
 do
-	eval oldpresence$name=`expr $presence / 2 + 1`
+	eval oldpresence$name=4  # on startup should quickly tell if a person is not present
 done
 
 while true
