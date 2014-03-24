@@ -17,7 +17,7 @@ presence=20	# how many loops until somebody is no longer present
 
 for name in $@
 do
-	eval old$name=`expr $presence / 2 + 1`
+	eval oldpresence$name=`expr $presence / 2 + 1`
 done
 
 while true
@@ -29,23 +29,25 @@ do
                 eval addresstocheck=\$$name
                 grepoutput=$(echo $arpoutput|egrep -i "$addresstocheck")
 
-               	eval oldvalue=\$old$name
+               	eval oldvalue=\$oldpresence$name
+				eval oldstate=\$oldstate$name
 
                	if [ -n "$grepoutput" ];
                 then
-                		eval old$name=$presence
+                		eval oldpresence$name=$presence
                         isalive=1
                 else
-                		eval old$name=`expr $oldvalue - 1 \| 1 `
+                		eval oldpresence$name=`expr $oldvalue - 1 \| 1 `
                         isalive=0
                 fi
 
-               	eval newvalue=\$old$name
+               	eval newvalue=\$oldpresence$name
 
-                if [ $newvalue != $oldvalue -a \( $newvalue = 1 -o $newvalue = $presence \) ] ;
+				if [ $newvalue != $oldvalue -a \( $newvalue = 1 -o $newvalue = $presence \) -a \( $isalive != "$oldstate" \) ] ;
                 then
-                	#echo "Changing state: $name $isalive $newvalue"
+					#echo "Changing state: $name $isalive $newvalue $oldstate"
 					wget -q -O /dev/null "http://$hmccu2:8181/rega.exe?state=dom.GetObject('$name').State($isalive)"
+					eval oldstate$name=$isalive
                 fi
         done
 
