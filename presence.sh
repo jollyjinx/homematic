@@ -11,46 +11,52 @@ set patrick guests				# variables to set on the ccu2 and their presence check
 patrick="a:f5:90:44:24:a4"
 guests="5:77:4f:e8:87:77|89:0b:91:ea:d2:33|d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[5-8][0-9]"
 
-looptime=30	# how often we check in seconds
-presence=45	# how many loops until somebody is no longer present
+looptime=30			# how often we check in seconds
+countsaspresent=45	# how many loops until somebody is no longer present
 
 
 for name in $@
 do
-	eval oldpresence$name=4  # on startup should quickly tell if a person is not present
+		eval currentpresence$name=4
 done
 
 while true
 do
-        arpoutput=$(arp -an |grep at)
+		arpoutput=$(arp -an |grep -v '<incomplete>'|grep 'at')
 
-        for name in $@
-        do
-                eval addresstocheck=\$$name
-                grepoutput=$(echo $arpoutput|egrep -i "$addresstocheck")
+		for name in $@
+		do
+				eval addresstocheck=\$$name
+				grepoutput=$(echo $arpoutput|egrep -i "$addresstocheck")
 
-               	eval oldvalue=\$oldpresence$name
-				eval oldstate=\$oldstate$name
+				eval currentpresence=\$currentpresence$name
+				eval currentstate=\$currentstate$name
 
-               	if [ -n "$grepoutput" ];
-                then
-                		eval oldpresence$name=$presence
-                        isalive=1
-                else
-                		eval oldpresence$name=`expr $oldvalue - 1 \| 1 `
-                        isalive=0
-                fi
+				if [ -n "$grepoutput" ];
+				then
+					eval currentpresence$name=$countsaspresent
+					isalive="1"
+				else
+					eval currentpresence$name=`expr $currentpresence - 1 \| 1 `
+					isalive="0"
+				fi
 
-               	eval newvalue=\$oldpresence$name
+				eval newvalue=\$currentpresence$name
 
-				if [ $newvalue != $oldvalue -a \( $newvalue = 1 -o $newvalue = $presence \) -a \( $isalive != "$oldstate" \) ] ;
-                then
-					#echo "Changing state: $name $isalive $newvalue $oldstate"
-					wget -q -O /dev/null "http://$hmccu2:8181/rega.exe?state=dom.GetObject('$name').State($isalive)"
-					eval oldstate$name=$isalive
-                fi
-        done
+				if [ $newvalue -ne $currentpresence -a \( $newvalue -eq 1 -o $newvalue -eq $countsaspresent \) -a \( $isalive != "$currentstate" \) ]
+				then
+					#echo "Changing state name:$name currentpresence:$currentpresence currentstate:$currentstate isalive:$isalive newvalue:$newvalue"
+					didsetvalue=$(wget -q -O - "http://$hmccu2:8181/rega.exe?state=dom.GetObject('$name').State($isalive)"|egrep '<state>(false|true)<\/state><\/xml>$')
 
-        sleep $looptime
+					if [ -n "$didsetvalue" ];
+					then
+							eval currentstate$name=$isalive
+					else
+							eval currentpresence$name=$currentpresence
+					fi
+				fi
+		done
+
+		sleep $looptime
 done
 
