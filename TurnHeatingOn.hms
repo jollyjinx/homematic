@@ -1,0 +1,84 @@
+! Turn main heating switch on when thermostats in house are below
+! their set value or valves are open. Either one valve is open a lot
+! or all valves together are above a level.
+!
+!----- User settable variables
+
+
+string	heatingmainswitch		= "BidCos-RF.KEQ0768205:2";	! set this to the switch your heating uses
+
+integer	timebetweenchanges		= 15; 						! in minutes before another change to the main switch should be done
+real	singlevalveturnonstate	= 30.0;						! if one valve is above this point turn on heating
+real	averagevalveturnonstate	= 20.0;						! if all valves average is above this point turn heating on
+boolean debug 					= true;						! if set only output what is done, don't do it
+
+!------ Execution
+
+var		heatingswitch		= dom.GetObject(heatingmainswitch#".STATE");
+
+! check time the switch was last modified
+
+time lasttimechanged	= heatingswitch.Timestamp();
+time timenow 			= system.Date("%Y-%m-%d %H:%M:%S").ToTime();
+
+integer	lastchange		= (timenow-lasttimechanged).ToInteger();												if(debug){WriteLine("Seconds since last changing:"#lastchange);}
+
+if( lastchange < (timebetweenchanges*60) )
+{
+	if(debug){WriteLine("Last change not long enough ago");}
+	quit;
+}
+
+
+boolean	turnonheating		= false;
+string	thermostat;
+real	allvalvestate		= 0.0;
+real	allvalvecount		= 0.0;
+	
+
+string	deviceid;
+foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs()) 
+{
+	var device	= dom.GetObject(deviceid);																		if(debug){WriteLine("Device:"#device#" (id:"#deviceid#")");}
+													
+	if( (!turnonheating) && ("HM-CC-RT-DN" == device.HSSID()) )
+	{	
+		string channelid;																											
+		foreach(channelid,device.Channels().EnumUsedIDs())
+		{
+			var channel	= dom.GetObject(channelid);																if(debug){WriteLine("\t Channel:"#channel#" (id:"#channelid#")");}
+			
+			if( (!turnonheating) && ("CLIMATECONTROL_RT_TRANSCEIVER" == channel.HSSID()) ) 
+			{
+				var interface	=	dom.GetObject(channel.Interface());
+				var datapoint	=	interface#"."#channel.Address();											if(debug){WriteLine("\t Datapoint:"#datapoint);}
+				
+				real	actualtemperature	= dom.GetObject(datapoint#".ACTUAL_TEMPERATURE").Value();
+				real	settemperature 		= dom.GetObject(datapoint#".SET_TEMPERATURE").Value();				if(debug){WriteLine("\t\tactualtemperature:"#actualtemperature#"\tsettemperature:"#settemperature);}
+				real	valvestate			= dom.GetObject(datapoint#".VALVE_STATE").Value();					if(debug){WriteLine("\t\tvalvestate:"#valvestate#"\tsettemperature:"#settemperature);}
+			
+				allvalvecount=allvalvecount+1;
+				allvalvestate=allvalvestate+valvestate;
+			
+				if( (actualtemperature < settemperature) || (valvestate>singlevalveturnonstate) )
+				{																								if(debug){WriteLine("should be heating(single thermostat)");}
+					turnonheating	= true;
+				}
+			}
+		}
+	}
+}	
+
+if( (allvalvecount>0.0) && ((allvalvestate/allvalvecount)>averagevalveturnonstate) )
+{
+	turnonheating	= true;																						if(debug){WriteLine("should be heating(average valves)"#(allvalvestate/allvalvecount)#">"#averagevalveturnonstate);}
+}
+
+
+
+boolean currentheatingstate = heatingswitch.Value();															if(debug){WriteLine("currentstate:"#currentheatingstate#"\nturnonheating:"#turnonheating);}
+
+if( currentheatingstate <> turnonheating )
+{																												if(debug){WriteLine("Would change heating:"#turnonheating);}
+	if(!debug){heatingswitch.State(turnonheating);}
+}
