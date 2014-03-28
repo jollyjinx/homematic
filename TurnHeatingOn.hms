@@ -1,3 +1,5 @@
+! https://github.com/jollyjinx/homematic/blob/master/TurnHeatingOn.hms
+!
 ! Turn main heating switch on when thermostats in house are below
 ! their set value or valves are open. Either one valve is open a lot
 ! or all valves together are above a level.
