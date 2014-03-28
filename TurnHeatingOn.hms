@@ -12,7 +12,8 @@ string	heatingmainswitch		= "BidCos-RF.KEQ0768205:2";	! set this to the switch y
 integer	timebetweenchanges		= 15; 						! in minutes before another change to the main switch should be done
 real	singlevalveturnonstate	= 30.0;						! if one valve is above this point turn on heating
 real	averagevalveturnonstate	= 20.0;						! if all valves average is above this point turn heating on
-boolean debug 					= true;						! if set only output what is done, don't do it
+real	overshoottemperature	= 1.0;						! if actutal temperature is above this valve state will be ignored
+boolean debug 					= false;					! if set only output what is done, don't do it
 
 !------ Execution
 
@@ -57,14 +58,18 @@ foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs())
 				
 				real	actualtemperature	= dom.GetObject(datapoint#".ACTUAL_TEMPERATURE").Value();
 				real	settemperature 		= dom.GetObject(datapoint#".SET_TEMPERATURE").Value();				if(debug){WriteLine("\t\tactualtemperature:"#actualtemperature#"\tsettemperature:"#settemperature);}
-				real	valvestate			= dom.GetObject(datapoint#".VALVE_STATE").Value();					if(debug){WriteLine("\t\tvalvestate:"#valvestate#"\tsettemperature:"#settemperature);}
-			
-				allvalvecount=allvalvecount+1;
-				allvalvestate=allvalvestate+valvestate;
-			
-				if( (actualtemperature < settemperature) || (valvestate>singlevalveturnonstate) )
-				{																								if(debug){WriteLine("should be heating(single thermostat)");}
-					turnonheating	= true;
+				
+				if( actualtemperature < (settemperature+overshoottemperature) )
+				{
+					real	valvestate			= dom.GetObject(datapoint#".VALVE_STATE").Value();				if(debug){WriteLine("\t\tvalvestate:"#valvestate#"\tsettemperature:"#settemperature);}
+				
+					allvalvecount=allvalvecount+1;
+					allvalvestate=allvalvestate+valvestate;
+				
+					if( (actualtemperature < settemperature) || (valvestate>singlevalveturnonstate) )
+					{																							if(debug){WriteLine("should be heating(single thermostat)");}
+						turnonheating	= true;
+					}
 				}
 			}
 		}
