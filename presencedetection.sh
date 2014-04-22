@@ -1,18 +1,19 @@
-﻿#!/bin/sh
+#!/bin/sh
 # presence detection for home router (e.g. Fritzbox)
 # sets variables on homematics ccu2 in this incarnation (change the wget)
 # can be found on: https://github.com/jollyjinx/homematic
 #
-#   install this script on a fritzbox and start it after reboot via debug.cfg
+#   install this script on your router start it after reboot (on a fritzbox via debug.cfg)
 #
 
-hmccu2="hmccu2"                 # ip address of ccu2
+hmccu2="hmccu2"                 # ip address or netowrk name of ccu2
 set patrick guests              # variables to set on the ccu2 and their presence check
 patrick="a:f5:90:44:24:a4"
 guests="5:77:4f:e8:87:77|89:0b:91:ea:d2:33|d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[5-8][0-9]"
 
-looptime=30         # how often we check in seconds
-countsaspresent=45  # how many loops until somebody is no longer present
+ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56):"	# ignore incomplete and vmware addresses
+looptime=30         								# how often we check in seconds
+countsaspresent=45  								# how many loops until somebody is no longer present
 
 
 for name in $@
@@ -22,7 +23,7 @@ done
 
 while true
 do
-        arpoutput=$(arp -an |grep -v '<incomplete>'|grep 'at')
+        arpoutput=$(arp -an |egrep -v "$ignore"|grep 'at')
 
         for name in $@
         do
