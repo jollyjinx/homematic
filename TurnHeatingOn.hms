@@ -4,7 +4,7 @@
 ! their set value or valves are open. Either one valve is open a lot
 ! or all valves together are above a level.
 !
-!----- User settable variables
+!----- User setable variables
 
 
 string  heatingmainswitch       = "BidCos-RF.KEQ0768205:2"; ! set this to the switch your heating uses

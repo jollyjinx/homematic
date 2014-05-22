@@ -2,7 +2,7 @@
 !
 ! Script changes all Thermostats to either auto or manual mode.
 !
-!----- User settable variables
+!----- User setable variables
 
 
 string  thermostatmodeswitch    = "BidCos-RF.KEQ0768205:4"; ! switch that decides if thermostats should be manual (off) or in auto mode (on)
