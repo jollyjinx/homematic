@@ -21,4 +21,4 @@ This script iterates through all heating thermostats and turns the main switch f
 
 ThermostatModeSwitch.hms
 -----------------------
-This script sets all thermostats to manual or auto mode depending on a swith state. So a single main switch can turn off all thermostats.
+This script sets all thermostats to manual or auto mode depending on a switch state. So a single main switch can turn off all thermostats.
