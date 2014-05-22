@@ -7,7 +7,7 @@
 
 string  thermostatmodeswitch    = "BidCos-RF.KEQ0768205:4"; ! switch that decides if thermostats should be manual (off) or in auto mode (on)
 
-boolean debug                   = true;                 ! if set only output what is done, don't do it
+boolean debug                   = false;                    ! if set only output what is done, don't do it
 
 !------ Execution
 
