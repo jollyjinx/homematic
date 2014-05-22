@@ -5,45 +5,45 @@
 !----- User settable variables
 
 
-string	thermostatmodeswitch	= "BidCos-RF.KEQ0768205:4";	! switch that decides if thermostats should be manual (off) or in auto mode (on)
+string  thermostatmodeswitch    = "BidCos-RF.KEQ0768205:4"; ! switch that decides if thermostats should be manual (off) or in auto mode (on)
 
-boolean debug 					= true;					! if set only output what is done, don't do it
+boolean debug                   = true;                 ! if set only output what is done, don't do it
 
 !------ Execution
 
-var		modeswitch				= dom.GetObject(thermostatmodeswitch#".STATE");
-boolean	automode                = modeswitch.Value();                                                            if(debug){WriteLine("modeswitch State:"#automode);}
+var     modeswitch              = dom.GetObject(thermostatmodeswitch#".STATE");
+boolean automode                = modeswitch.Value();                                                           if(debug){WriteLine("modeswitch State:"#automode);}
 
 
-string	deviceid;
+string  deviceid;
 foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs()) 
 {
-	var device	= dom.GetObject(deviceid);      														        if(debug){WriteLine("Device:"#device#" (id:"#deviceid#")");}
-													
-	if( "HM-CC-RT-DN" == device.HSSID() )
-	{	
-		string channelid;																											
-		foreach(channelid,device.Channels().EnumUsedIDs())
-		{
-			var channel	= dom.GetObject(channelid);																if(debug){WriteLine("\t Channel:"#channel#" (id:"#channelid#")");}
-			
-			if( "CLIMATECONTROL_RT_TRANSCEIVER" == channel.HSSID() )
-			{
-				var     interface	=	dom.GetObject(channel.Interface());
-				var     datapoint	=	interface#"."#channel.Address();										if(debug){WriteLine("\t Datapoint:"#datapoint);}
-				
-				if( automode )
-				{
-					dom.GetObject(datapoint#".AUTO_MODE").State(1);
-				}
-				else
-				{
-					dom.GetObject(datapoint#".MANU_MODE").State(0.0);
-				}
-                integer state   	=  dom.GetObject(datapoint#".CONTROL_MODE").Value();                           if(debug){WriteLine("\t State:"#state);}
+    var device  = dom.GetObject(deviceid);                                                                      if(debug){WriteLine("Device:"#device#" (id:"#deviceid#")");}
+                                                    
+    if( "HM-CC-RT-DN" == device.HSSID() )
+    {   
+        string channelid;                                                                                                           
+        foreach(channelid,device.Channels().EnumUsedIDs())
+        {
+            var channel = dom.GetObject(channelid);                                                             if(debug){WriteLine("\t Channel:"#channel#" (id:"#channelid#")");}
+            
+            if( "CLIMATECONTROL_RT_TRANSCEIVER" == channel.HSSID() )
+            {
+                var     interface   =   dom.GetObject(channel.Interface());
+                var     datapoint   =   interface#"."#channel.Address();                                        if(debug){WriteLine("\t Datapoint:"#datapoint);}
                 
-			}
-		}
-	}
-}	
+                if( automode )
+                {
+                    dom.GetObject(datapoint#".AUTO_MODE").State(1);
+                }
+                else
+                {
+                    dom.GetObject(datapoint#".MANU_MODE").State(0.0);
+                }
+                integer state       =  dom.GetObject(datapoint#".CONTROL_MODE").Value();                        if(debug){WriteLine("\t State:"#state);}
+                
+            }
+        }
+    }
+}   
 
