@@ -56,12 +56,12 @@ string  typenames;
 
 if( "de" == language )
 {
-    WriteLine(channelcount # " Kanaele in " # devicecounter # " Geraeten " # devicetypecount # " Geraetetypen:");
+    WriteLine(channelcount # " Kanaele in " # devicecounter # " Geraeten, " # devicetypecount # " Geraetetypen:");
     typenames   = typenames_de; 
 }
 else
 {
-    WriteLine(channelcount # " channels in " # devicecounter # " devices" # devicetypecount # " devicetypes:");
+    WriteLine(channelcount # " channels in " # devicecounter # " devices, " # devicetypecount # " devicetypes:");
     typenames   = typenames_en; 
 }
 
@@ -84,22 +84,31 @@ foreach(devicetype,devicetypes.Split(","))
             }
         }
 
-        string  nicename;
-        integer devicenameposition  = typenames.Find(devicetype);
+        string  originaldevicetype = devicetype;
+        boolean foundnicename=false;
         
-        if( -1 != devicenameposition )
-        {
-            integer     length          = devicetype.Length();
-            string      remainingstring = typenames.Substr(devicenameposition,length-devicenameposition);
-            
-            nicename    = "(" # remainingstring.StrValueByIndex(",",1) # ")";
+        while( !foundnicename && devicetype.Length()>6 )
+        {           
+            string  nicename;                                                               
+            integer devicenameposition   = typenames.Find(devicetype#",");                      if(debug){WriteLine("Searching nicename for:"#devicetype);}
+
+            if( -1 != devicenameposition )
+            {                                                                                   
+                integer     length          = devicetype.Length();
+                string      remainingstring = typenames.Substr(devicenameposition,length-devicenameposition);
+                
+                nicename    = "(" # remainingstring.StrValueByIndex(",",1) # ")";
+                foundnicename = true;
+            }
+            else
+            {
+                devicetype = devicetype.Substr(0,devicetype.Length()-1);
+            }
         }
         
-        outputstring = outputstring # devicecounter # "x " # devicetype # nicename # ", ";
+        outputstring = outputstring # devicecounter # "x " # originaldevicetype # nicename # ", ";
     }
 }
 WriteLine(outputstring.Substr(0, outputstring.Length() - 2));
 WriteLine("--------------------------------------------");
 WriteLine("https://github.com/jollyjinx/homematic/blob/master/Inventory.hms");
-
-
