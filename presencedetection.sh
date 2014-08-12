@@ -5,10 +5,15 @@
 #
 #   install this script on your router start it after reboot (on a fritzbox via debug.cfg)
 #
+# boolean variables on the homematic are named 'patrick' and 'guests'
+# patrick is set to beeing present when his ethernet address shows up
+# guests are present when there eternet addresses show up or specific network
+# IP addresses 192.168.0.140-192.168.0.199 or 192.168.179.* (fritzbox guest network)
+# are beeing used.
 
 hmccu2="hmccu2"                 # ip address or netowrk name of ccu2
 set patrick guests              # variables to set on the ccu2 and their presence check
-patrick="a:f5:90:44:24:a4"
+patrick="a:f5:90:44:24:a4"		# patricks presense detection device (iphone)
 guests="5:77:4f:e8:87:77|89:0b:91:ea:d2:33|d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[4-9][0-9]|192.168.179.[1-2]?[0-9]+"
 
 ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56):"	# ignore incomplete and vmware addresses
