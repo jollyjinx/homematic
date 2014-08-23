@@ -10,15 +10,17 @@
 # guests are present when there eternet addresses show up or specific network
 # IP addresses 192.168.0.140-192.168.0.199 or 192.168.179.* (fritzbox guest network)
 # are beeing used.
+# be aware that the variables need to exist on the homematic this script does not create them
+
 
 hmccu2="hmccu2"                 # ip address or netowrk name of ccu2
 set patrick guests              # variables to set on the ccu2 and their presence check
-patrick="a:f5:90:44:24:a4"		# patricks presense detection device (iphone)
+patrick="a:f5:90:44:24:a4"      # patricks presense detection device (iphone)
 guests="5:77:4f:e8:87:77|89:0b:91:ea:d2:33|d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[4-9][0-9]|192.168.179.[1-2]?[0-9]+"
 
-ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56):"	# ignore incomplete and vmware addresses
-looptime=30         								# how often we check in seconds
-countsaspresent=45  								# how many loops until somebody is no longer present
+ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56):"  # ignore incomplete and vmware addresses
+looptime=30                                         # how often we check in seconds
+countsaspresent=45                                  # how many loops until somebody is no longer present
 
 
 for name in $@
@@ -28,7 +30,7 @@ done
 
 while true
 do
-        arpoutput=$(arp -an |egrep -v "$ignore"|grep 'at')
+        arpoutput=$(arp -an |egrep -vi "$ignore"|grep 'at')
 
         for name in $@
         do
