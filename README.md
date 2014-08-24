@@ -9,7 +9,7 @@ Router Presence Script (presencedetection.sh)
 
 A script for routers to detect presence of specific devices (by ethernetaddress) or IP ranges (e.g. guests). On detection it will call a URL with a presence flag.
 Presence is detected by using the arp table of the device and will call given URLs in the event a presence changes. Only changes will be transmitted so very low traffic is generated. No presence detections are lost as the script retries if the destination is not ready for reception.
-This script runs on my router (a fritz!box, but should work on any unix based router).  Currently the script sets presence variabels on a HomeMatic CCU2, but could be used for other systems as well.
+This script runs on my router (a fritz!box, but should work on any unix based router).  Currently the script sets presence variables on a HomeMatic CCU2, but could be used for other systems as well.
 
 
 Inventory.hms (homematic script)
