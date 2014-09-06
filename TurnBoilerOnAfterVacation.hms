@@ -1,4 +1,4 @@
-!https://github.com/jollyjinx/HomeMatic/TurnBoilerOnAfterVacation.hms
+!https://github.com/jollyjinx/homematic/blob/master/TurnBoilerOnAfterVacation.hms
 !
 ! This script turns my boiler when someone arrives at home and the boiler has not
 ! been turned on for 24 hours.
