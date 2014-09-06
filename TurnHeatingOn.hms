@@ -13,7 +13,7 @@ integer timebetweenchanges      = 15;                       ! in minutes before 
 real    singlevalveturnonstate  = 30.0;                     ! if one valve is above this point turn on heating
 real    averagevalveturnonstate = 20.0;                     ! if all valves average is above this point turn heating on
 real    overshoottemperature    = 1.0;                      ! if actutal temperature is above this valve state will be ignored
-boolean debug                   = false;                    ! if set only output what is done, don't do it
+boolean debug                   = false;                    ! if set, only output what is done, don't do it
 
 !------ Execution
 

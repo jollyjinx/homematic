@@ -29,3 +29,9 @@ This script automtically finds out all heating thermostats and turns the main sw
 ThermostatModeSwitch.hms (homematic script)
 -----------------------
 This script finds out all heating thermostats and sets them all to manual off state or auto mode depending on a switch state. So a single main switch can turn off all thermostats.
+
+
+TurnBoilerOnAfterVacation.hms (homematic script)
+-----------------------
+This script turns my boiler when someone arrives at home and the boiler has not been turned on for 24 hours.
+Usually that is the case after a vacation, then I want to make sure I can take a  shower instantly.

@@ -1,0 +1,44 @@
+!https://github.com/jollyjinx/HomeMatic/TurnBoilerOnAfterVacation.hms
+!
+! This script turns my boiler when someone arrives at home and the boiler has not
+! been turned on for 24 hours.
+! Usually that is the case after a vacation, then I want to make sure I can take a 
+! shower instantly.
+
+string  boilerswitchname        = "BidCos-RF.KEQ0768205:1"; ! set this to the switch your boiler uses
+string  presencevariablename    = "presence.any";           ! set this to the variable name you use for detecting someone at home
+integer timebetweenchanges      = 24;                       ! hours someone has not been home
+boolean debug                   = false;                    ! if set, only output what is done, don't do it
+
+!------ Execution
+
+boolean someoneisathome     = dom.GetObject(presencevariablename).Value();
+
+if( !someoneisathome )
+{
+    if(debug){WriteLine("Nobody home. Nothing to do.");}
+    quit;
+}
+
+
+! check time the switch was last modified
+
+var     boilerswitch       = dom.GetObject(boilerswitchname#".STATE");
+time    lasttimechanged    = boilerswitch.Timestamp();
+time    timenow            = system.Date("%Y-%m-%d %H:%M:%S").ToTime();
+
+integer lastchange      = (timenow-lasttimechanged).ToInteger();                                                if(debug){WriteLine("Seconds since last changing:"#lastchange);}
+
+if( lastchange < (timebetweenchanges*3600) )
+{
+    if(debug){WriteLine("Last change not long enough ago");}
+    quit;
+}
+
+boolean turnonboiler       = true;
+boolean currentboilerstate = boilerswitch.Value();                                                            if(debug){WriteLine("currentstate:"#currentboilerstate#"\nturnonboiler:"#turnonboiler);}
+
+if( currentboilerstate <> turnonboiler )
+{                                                                                                               if(debug){WriteLine("Would change boiler:"#turnonboiler);}
+    if(!debug){boilerswitch.State(turnonboiler);}
+}
