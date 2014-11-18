@@ -1,0 +1,40 @@
+!https://github.com/jollyjinx/homematic/blob/master/GuestsThermostat.hms
+!
+! This script turns my guests thermostat to auto or off depending on guests presence
+
+string  thermostatname          = "BidCos-RF.KEQ1039045:4"; ! set this to the switch your boiler uses
+string  presencevariablename    = "presence.guests";        ! set this to the variable name you use for detecting someone at home
+boolean debug                   = false;                    ! if set, only output what is done, don't do it
+
+!------ Execution
+
+boolean guestsarepresent    = dom.GetObject(presencevariablename).Value();                      if(debug){WriteLine("presence.guests:"#guestsarepresent);}
+real    settemperature      = dom.GetObject(thermostatname#".SET_TEMPERATURE").Value();         if(debug){WriteLine("settemperature:"#settemperature);}
+
+! modes
+! 0 = auto
+! 1 = manu
+! 2 = party
+! 3 = boost
+
+integer modetoset = 0;
+
+if( !guestsarepresent )
+{
+    modetoset = 1;
+}
+
+                                                                                                if(debug){WriteLine("Mode to set : "#modetoset);}
+integer currentmode = dom.GetObject(thermostatname#".CONTROL_MODE").Value();                    if(debug){WriteLine("Current mode: "#currentmode);}
+
+if( modetoset != currentmode )
+{
+    if( 0 == modetoset )
+    {
+        dom.GetObject(thermostatname#".AUTO_MODE").State(1);                                    if(debug){WriteLine("Setting thermostat to auto-mode");}
+    }
+    else
+    {
+        dom.GetObject(thermostatname#".MANU_MODE").State(0.0);                                  if(debug){WriteLine("Setting thermostat to manual mode");}
+    }
+}
