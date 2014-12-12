@@ -1,0 +1,73 @@
+boolean debug = true;
+string  presenceprefix = "presence";
+
+string  allvariables        = ",any,";
+string  presentvariables    = ",";
+boolean someoneispresent    = false;
+
+string variableID;
+
+foreach(variableID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()) 
+{
+    string  variablename    = dom.GetObject(variableID).Name();                     if(debug){WriteLine("Variable:"#variablename);}
+    if( presenceprefix == variablename.StrValueByIndex(".",0) )
+    {
+        string  persontype      = variablename.StrValueByIndex(".",2);
+        
+        if( persontype.Length() > 0 )
+        {
+            if( -1 == allvariables.Find(","#persontype#",") )
+            {
+                allvariables = allvariables#persontype#",";                         if(debug){WriteLine("\tAdding to all:"#persontype);}
+            }
+            if( -1 == presentvariables.Find(","#persontype#",") )
+            {           
+                var variablevalue   = dom.GetObject(variablename).Value();          if(debug){WriteLine("\t"#variablename#":"#variablevalue);}
+                
+                if( true == variablevalue )
+                {
+                    if( !someoneispresent )
+                    {
+                        presentvariables = ",any,";                                 if(debug){WriteLine("\tsomeoneispresent is present.");}
+                        someoneispresent = true;
+                    }
+                    presentvariables = presentvariables#persontype#",";             if(debug){WriteLine("\tpresentvariables:"#presentvariables);}
+                }   
+            }
+            else
+            {
+                                                                                    if(debug){WriteLine("\t"#persontype#" already present");}
+            }
+        }
+    }
+}
+
+
+if(debug) { WriteLine("AllPersontypes:"#allvariables); }
+if(debug) { WriteLine("Present:"#presentvariables); }
+
+
+string persontype;
+
+foreach(persontype,allvariables.Split(","))
+{
+    if( persontype.Length() > 0 )
+    {
+        boolean ispresent = false;
+        
+        if( -1 != presentvariables.Find(","#persontype#",") )
+        {                                                                               if(debug){WriteLine("\tpersontype found:"#persontype);}
+            ispresent = true;
+        }
+        
+        var presencevariable = dom.GetObject("presence."#persontype);
+        if( ispresent != presencevariable.Value() )
+        {                                                                               if(debug){WriteLine("\tpresence."#persontype#" has changed:"#ispresent);}
+            presencevariable.State(ispresent);
+        }
+        else
+        {                                                                               if(debug){WriteLine("\tpresence."#persontype#" has not changed:"#ispresent);}
+
+        }
+    }
+}
