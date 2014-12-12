@@ -1,7 +1,33 @@
-boolean debug = true;
-string  presenceprefix = "presence";
+! https://github.com/jollyjinx/homematic/blob/master/presenceVariableAggregation.hms
+!
+! Aggregates variables to ones that are used in scripts.
+! I have multiple variables that detect presence:
+!
+! The aggregated variables are in the form:
+!
+! presence.any          is anybody home
+! presence.guests       are guests at home
+! presence.patrick      i'm at home
+! presence....
+!
+! Those variables are aggregated through variables named presence.type.personname
+!
+! presence.wlan.guests          someone is in the guest wlan
+! presence.wlan.patrick         i'm logged in to the wlan
+!
+! presence.manual.guests        manually set via a virtual ccu2 switch
+! presence.timetable.patrick    presence set via a timetable
 
-string  allvariables        = ",any,";
+
+!----- User setable variables
+
+string  presenceprefix          = "presence";
+string  allpersonsprescenename  = "any";
+boolean debug                   = true;
+
+!------- nothing needs to be changed below.
+
+string  allvariables        = ","#allpersonsprescenename#",";
 string  presentvariables    = ",";
 boolean someoneispresent    = false;
 
@@ -28,7 +54,7 @@ foreach(variableID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs())
                 {
                     if( !someoneispresent )
                     {
-                        presentvariables = ",any,";                                 if(debug){WriteLine("\tsomeoneispresent is present.");}
+                        presentvariables = ","#allpersonsprescenename#",";          if(debug){WriteLine("\tsomeoneispresent is present.");}
                         someoneispresent = true;
                     }
                     presentvariables = presentvariables#persontype#",";             if(debug){WriteLine("\tpresentvariables:"#presentvariables);}
