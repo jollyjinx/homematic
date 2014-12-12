@@ -22,13 +22,13 @@
 !----- User setable variables
 
 string  presenceprefix          = "presence";
-string  allpersonsprescenename  = "any";
+string  allpersonspresencename  = "any";
 boolean debug                   = true;
 
 !------- nothing needs to be changed below.
 
-string  allvariables        = ","#allpersonsprescenename#",";
-string  presentvariables    = ",";
+string  allvariables        = ","#allpersonspresencename#",";
+string  presencevariables    = ",";
 boolean someoneispresent    = false;
 
 string variableID;
@@ -46,7 +46,7 @@ foreach(variableID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs())
             {
                 allvariables = allvariables#persontype#",";                         if(debug){WriteLine("\tAdding to all:"#persontype);}
             }
-            if( -1 == presentvariables.Find(","#persontype#",") )
+            if( -1 == presencevariables.Find(","#persontype#",") )
             {           
                 var variablevalue   = dom.GetObject(variablename).Value();          if(debug){WriteLine("\t"#variablename#":"#variablevalue);}
                 
@@ -54,10 +54,10 @@ foreach(variableID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs())
                 {
                     if( !someoneispresent )
                     {
-                        presentvariables = ","#allpersonsprescenename#",";          if(debug){WriteLine("\tsomeoneispresent is present.");}
+                        presencevariables = ","#allpersonspresencename#",";          if(debug){WriteLine("\tsomeoneispresent is present.");}
                         someoneispresent = true;
                     }
-                    presentvariables = presentvariables#persontype#",";             if(debug){WriteLine("\tpresentvariables:"#presentvariables);}
+                    presencevariables = presencevariables#persontype#",";             if(debug){WriteLine("\tpresencevariables:"#presencevariables);}
                 }   
             }
             else
@@ -70,7 +70,7 @@ foreach(variableID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs())
 
 
 if(debug) { WriteLine("AllPersontypes:"#allvariables); }
-if(debug) { WriteLine("Present:"#presentvariables); }
+if(debug) { WriteLine("Present:"#presencevariables); }
 
 
 string persontype;
@@ -81,7 +81,7 @@ foreach(persontype,allvariables.Split(","))
     {
         boolean ispresent = false;
         
-        if( -1 != presentvariables.Find(","#persontype#",") )
+        if( -1 != presencevariables.Find(","#persontype#",") )
         {                                                                               if(debug){WriteLine("\tpersontype found:"#persontype);}
             ispresent = true;
         }
