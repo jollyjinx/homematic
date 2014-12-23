@@ -1,0 +1,168 @@
+!https://github.com/jollyjinx/homematic/blob/master/InformationDump.hms
+!
+! This script dumps information on Homematic CCU2 connected devices,functions,variables and more.
+! It might help you in finding out how to find out things with homematic script.
+!
+
+WriteLine("Executing HM Script now");
+
+string itemID;
+
+foreach (itemID, dom.GetObject(ID_PROGRAMS).EnumUsedIDs()) 
+{
+    WriteLine("Program ID:"#itemID);
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Program:"#item);
+    WriteLine("Program Last Run:"#item.Variable());
+}
+foreach (itemID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()) 
+{
+    WriteLine("Variable id:"#itemID);
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Variable:"#item);
+}
+foreach (itemID, dom.GetObject(ID_FUNCTIONS).EnumUsedIDs()) 
+{
+    WriteLine("Function id:"#itemID);
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Function name:"#item);
+}
+foreach (itemID, dom.GetObject(ID_CHANNELS).EnumUsedIDs()) 
+{
+    WriteLine("Channel id:"#itemID);
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Channel:"#item);
+}
+foreach (itemID, dom.GetObject(ID_INTERFACES).EnumUsedIDs()) 
+{
+    WriteLine("Interface id:"#itemID);
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Interface:"#item);
+}
+foreach (itemID, dom.GetObject(ID_DATAPOINTS).EnumUsedIDs()) 
+{
+    WriteLine("Datapoint id:"#itemID);
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Datapoint:"#item);
+}
+foreach (itemID, dom.GetObject(ID_ROOMS).EnumUsedIDs()) 
+{
+    WriteLine("Room ID:"#dom.GetObject(itemID));
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Room:"#item);
+}
+foreach (itemID, dom.GetObject(ID_STRUCTURE).EnumUsedIDs()) 
+{
+    WriteLine("Structure ID:"#dom.GetObject(itemID));
+    var item = dom.GetObject(itemID);
+    
+    WriteLine("Structure:"#item);
+}
+
+
+string deviceid; 
+
+foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs()) 
+{
+    WriteLine("DeviceID:"#deviceid);
+    
+    var device=dom.GetObject(deviceid);
+    WriteLine("Device:"#device);
+    WriteLine("\t device.Address:"#device.Address());
+    WriteLine("\t device.Name:"#device.Name());
+    WriteLine("\t device.DataValue:"#device.DataValue());
+!   WriteLine("\t device.LastDPActionTime:"#device.LastDPActionTime());
+!   WriteLine("\t device.ChnRoom:"#device.ChnRoom());
+    WriteLine("\t device.PrgInfo:"#device.PrgInfo());
+    WriteLine("\t device.PrgInfo:"#device.PrgInfo().Value());
+    WriteLine("\t device.DestinationChannel:"#device.DestinationChannel());
+    WriteLine("\t device.DPInfo:"#device.DPInfo());
+    WriteLine("\t device.HSSID:"#device.HSSID());
+    WriteLine("\t device.IsTypeOf:"#device.IsTypeOf());
+
+    WriteLine("\t device.Operations:"#device.Operations());
+    string operationid;
+    foreach(operationid,device.Operations().EnumUsedIDs())
+    {
+        var operation=dom.GetObject(operationid);
+        WriteLine("\t\t device.operation:"#operation);
+    }
+    string dpid;
+    foreach(dpid,device.DPs().EnumUsedIDs())
+    {
+        var dp=dom.GetObject(dpid);
+        WriteLine("\t\t device.dpids:"#dp);
+    }
+
+    string channelid;
+     
+     foreach(channelid,device.Channels().EnumUsedIDs())
+     {
+        var channel=dom.GetObject(channelid);
+        
+        WriteLine("\t Channel:"#channel#"\t channel.Name:"#channel.Name());
+        WriteLine("\t\t channel.ChnFunction:"#channel.ChnFunction());
+        WriteLine("\t\t channel.Address:"#channel.Address());
+        WriteLine("\t\t channel.ChnLabel:"#channel.ChnLabel());
+        WriteLine("\t\t channel.ChnFunction:"#channel.ChnFunction());
+        WriteLine("\t\t channel.ChnArchive:"#channel.ChnArchive());
+        WriteLine("\t\t channel.ChnDirection:"#channel.ChnDirection());
+        WriteLine("\t\t channel.DPInfo:"#channel.DPInfo());
+        WriteLine("\t\t channel.LastDPActionTime:"#channel.LastDPActionTime());
+        WriteLine("\t\t channel.DestinationDP:"#channel.DestinationDP());
+        WriteLine("\t\t channel.DataValue:"#channel.DataValue());
+        WriteLine("\t\t channel.ChnGroupPartnerId:"#channel.ChnGroupPartnerId());
+        WriteLine("\t\t channel.DestinationChannel:"#channel.DestinationChannel());
+        WriteLine("\t\t channel.HSSID:"#channel.HSSID());
+        WriteLine("\t\t channel.IsTypeOf:"#channel.IsTypeOf());
+
+
+        var interface=dom.GetObject(channel.Interface());
+
+        WriteLine("\t\t channel.Interface:"#interface);
+        WriteLine("\t\t channel.Interface.Name:"#interface.Name());
+        !WriteLine("\t\t channel.Interface.Operations:"#interface.Operations());
+        !WriteLine("\t\t channel.Interface.Operations.Value:"#interface.Operations().Value());
+
+        !WriteLine("\t\t channel.Operations:"#channel.Operations());
+
+        !string dpid;
+        foreach(operationid,channel.DPs().EnumUsedIDs())
+        {
+            var datapoint=dom.GetObject(operationid);
+            Write("\t\t\t channel.datapoint:"#datapoint#"\t"#datapoint.ValueType()#"\t Value:"#datapoint.Value()#"\t LastValue:"#datapoint.LastValue()#"\t Timestamp:"#datapoint.Timestamp()#"\t");
+
+            if(OPERATION_READ & datapoint.Operations()) { Write("READ "); }
+            if(OPERATION_WRITE & datapoint.Operations()) { Write("WRITE "); }
+            if(OPERATION_EVENT & datapoint.Operations()) { Write("EVENT "); }
+            WriteLine("");
+        }
+
+        string rid;
+        
+        foreach(rid,channel.ChnRoom().EnumUsedIDs())
+        {
+            var room=dom.GetObject(rid);
+            WriteLine("\t\t roomid:"#rid#"\t room:"#room#"\t room.Name:"#room.Name());
+        }
+        foreach(rid,channel.ChnFunction().EnumUsedIDs())
+        {
+            var function=dom.GetObject(rid);
+            WriteLine("\t\t functionid:"#rid#"\t function:"#function#"\t function.Name:"#function.Name());
+        }
+        WriteLine("");
+    }
+    
+
+    var interface=dom.GetObject(device.Interface());
+    WriteLine("\t device.Interface:"#interface);
+    WriteLine("\t device.Interface.Name:"#interface.Name());
+
+}
