@@ -44,7 +44,7 @@ ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56):"  # ignore incomplete and vmwa
 looptime=30                                         # how often we check in seconds
 countsaspresent=45                                  # how many loops of looptime until somebody is no longer present
 intialpresencecount=4                               # default counter for each presence variable at start
-variableprefix="presence."                          # prefix for the variables on the ccu2
+variableprefix="presence.wlan."                     # prefix for the variables on the ccu2
 someonename="any"                                   # variable name if someone is present
  
 #
