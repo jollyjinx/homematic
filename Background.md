@@ -19,7 +19,7 @@ An die Heizköper habe ich die normalen HM-CC-RT-DN Thermostate angeschraubt. Mi
 Anwesenheitserkennung mit WLAN
 -------------------------------
 
-Auf meiner Fritzbox läuft ein Script https://github.com/jollyjinx/homematic/blob/master/presencedetection.sh, mit dem ich die Anwesenheit von Geräte in meinem WLAN feststelle. Moderne SmartPhones versuchen ständig eine Internetverbindung aufrecht zu erhalten (z.B. für Push-Nachrichten) und sind damit dem Router immer bekannt. Das Script schaut also nur die ARP Tabelle an und pingt Geräte nicht an, dadurch ändert sich an der Batterielaufzeit der Geräte nichts !
+Auf meiner Fritzbox läuft ein Script https://github.com/jollyjinx/homematic/blob/master/presencedetection.sh, mit dem ich die Anwesenheit von Geräten in meinem WLAN feststelle. Moderne SmartPhones versuchen ständig eine Internetverbindung aufrecht zu erhalten (z.B. für Push-Nachrichten) und sind damit dem Router immer bekannt. Das Script schaut also nur die ARP Tabelle an und pingt die Geräte nicht an, dadurch ändert sich an der Batterielaufzeit der Geräte nichts !
 
 Bestimmte Geräte sind bestimmten Leuten zugeordnet und somit werden Variblen auf der CCU2 durch das Script gesetzt. Also z.B. presence.wlan.patrick, oder presence.wlan.guests.
 
@@ -27,7 +27,7 @@ Bestimmte Geräte sind bestimmten Leuten zugeordnet und somit werden Variblen au
 Anwesenheitsaggregation
 -------------------------------
 
-Da nicht alle Leute mit einem Gerät im WLAN einbuchen, gibt es noch manuell setzbare Variablen in der CCU2 z.B. presence.manual.guests. Diese werden mit dem script https://github.com/jollyjinx/homematic/blob/master/presenceVariableAggregation.hms mit den anderen Anwesenheitserkennungen zusammengefasst in die variablen: presence.any, presence.guests, presence.patrick, usw.
+Da nicht alle Leute mit einem Gerät im WLAN einbuchen, gibt es noch manuell setzbare Variablen in der CCU2 z.B. presence.manual.guests. Diese werden mit dem script https://github.com/jollyjinx/homematic/blob/master/presenceVariableAggregation.hms mit den anderen Anwesenheitserkennungen zusammengefasst in die Variablen: presence.any, presence.guests, presence.patrick, usw.
 
 
 Anwesenheits Thermostatsteuerung
@@ -47,8 +47,9 @@ Die ganze Anwesenheitserkennung mache ich nur, damit ich die Solltemperaturen de
 					  sleeping    0:00,15C              8:00,10C    22:00,16C               
 
 
-Das Script https://github.com/jollyjinx/homematic/blob/master/PresenceTriggersTemperature.hms wertet diese Tabelle aus, überprüft die Anwesenheit der Personen im Haus, wertet aus ob ein Fenster eine Tür im Raum geöffnet ist oder ob Heizungsrelevante Schalter im Raum aktiv sind. So geht das Script davon aus, dass wenn Licht im Raum brennt, wohl auch jemand anwesend ist.
-Das Script setzt dann die Solltemperatur falls die aktuelle Solltemperatur nicht der berechneten übereinstimmt und das Thermostat im Automatikmodus läuft. Man kann also durch umstellen auf manuellen Thermostatmodus auch die Temperatur manuell verändern.
+Das Script https://github.com/jollyjinx/homematic/blob/master/PresenceTriggersTemperature.hms wertet diese Tabelle aus, überprüft die Anwesenheit der Personen im Haus und deren Temperaturwerte für die jeweiligen Räume. Es wertet aus ob ein Fenster oder eine Tür im Raum geöffnet ist oder ob Heizungsrelevante Schalter im Raum aktiv sind. So geht das Script davon aus, dass wenn Licht im Raum brennt, wohl auch jemand anwesend ist.
+
+Das Script setzt dann die Solltemperatur falls die aktuelle Solltemperatur nicht der berechneten übereinstimmt und das Thermostat im Automatikmodus läuft. Man kann also durch Umstellen auf manuellen Thermostatmodus auch die Temperatur manuell verändern.
 
 Das Script habe ich gestern mal zusammengeschrieben, hat aber z.Z. noch die Unzulänglichkeit, dass man die Thermostate erst auf manuell stellen muss, wenn man mal für ein paar Stunden die Automatik nicht greifen lassen will.
 
@@ -56,10 +57,11 @@ Das Script habe ich gestern mal zusammengeschrieben, hat aber z.Z. noch die Unzu
 Heizungssteuerung Boiler
 -------------------------------
 
-Ich habe mir dann auch noch die Boilersteuerung der Heizung angesehen. Die Heizung erkennt die Boilertemperatur über einen Heissleiter. Ich habe dann mal ausprobiert ob ein einfaches überbrücken des Widerstandes ausreicht der Heizung klar zu machen dass der Boiler heiss ist, aber da meldet die Heizung (korrekterweise) dass der Widerstand defekt sei. 
-Naja zufälligerweise lagen der Heizung noch ein paar Widerstände der Heizung bei mit denen ich (parallel zum Heisswiderstand geschaltet) eine rund 20 Grad höhere Temperatur vorgaukeln kann. Ich habe dann das zweite potentialfreie Relais vom HM-LC-Sw4-SM daran angeschlossen und kann damit den Boiler nun an und ausstellen.
-Da ich, um den Boiler auszustellen der Heizung eine 20 Grad höhere Temperatur im Boiler vorgaukle, ist klar, dass ich den Frostschutz der Heizung damit ausheble und die Heizung evtl. Frost nicht erkennen könnte. Da es bei mir im Reihenhauskeller nicht fröstelt, habe ich damit kein Problem.
+Ich habe mir dann auch noch die Boilersteuerung der Heizung angesehen. Die Heizung erkennt die Boilertemperatur über einen Heissleiter. Ich habe dann mal ausprobiert ob ein einfaches überbrücken des Widerstandes ausreicht der Heizung klar zu machen dass der Boiler heiss ist, aber da meldet die Heizung (korrekterweise) dass der Widerstand defekt sei.
 
+Zufälligerweise lagen der Heizung noch ein paar Widerstände bei, mit denen ich (parallel zum Heisswiderstand geschaltet) der Heizung eine rund 20 Grad höhere Temperatur vorgaukeln kann. Ich habe dann das zweite potentialfreie Relais vom HM-LC-Sw4-SM daran angeschlossen und kann damit den Boiler nun an und ausstellen.
+
+Da ich, um den Boiler auszustellen der Heizung eine 20 Grad höhere Temperatur im Boiler vorgaukle, ist klar, dass ich den Frostschutz der Heizung damit ausheble und die Heizung evtl. Frost nicht erkennen könnte. Da es bei mir im Reihenhauskeller nicht fröstelt, habe ich damit kein Problem.
 
 Wenn jemand zu Hause ist, wird der Boiler einmal am Tag um 6:15 Uhr angeschaltet. Wenn ich also übers Wochenende nicht da bin, wird der Boiler auch nicht erhitzt. 
 Der Boiler wird über ein weiteres Script immer nach einer halben Stunde ausgeschaltet. So kann man den Boiler auch mal zwischendurch manuell anschalten und er schaltet automatisch nach einer halben Stunde aus. Für Gaeste gibt es noch einen Schalter (HM-Sec-SCo:Funk- Tuer-/Fensterkontakt) an der Dusche, der den Boiler automatisch anschaltet sobald Gäste im Haus sind und geduscht wird (damit ist für den nächsten Duschenden auch warmes Wasser bereit). Und zu guter letzt, da ich gerne, wenn ich nach einem Urlaub nach Hause komme, Dusche, habe ich noch ein kleines Script laufen, welches den Boiler einschaltet wenn ich nach einem Urlaub nach Hause komme. https://github.com/jollyjinx/homematic/blob/master/TurnBoilerOnAfterVacation.hms 
