@@ -35,19 +35,19 @@ Anwesenheits Thermostatsteuerung
 
 Die ganze Anwesenheitserkennung mache ich nur, damit ich die Solltemperaturen der Thermostate einstellen kann. So hängt die Solltemperatur der Räume von den Leuten ab die im Haus sind und deren Vorlieben, das habe ich einer Tabelle aus dem Script eingefügt:
 
-	presence.guests:        hall        0:00,17C    6:00,18.5C  7:30,19.5C  19:30,20C   22:30,17C   
-							living      0:00,17C                7:30,19C    19:30,20C   22:30,17C   
-							kitchen     0:00,17C    6:00,18.5C  7:30,20C    20:30,17C               
-							guests      0:00,17C                8:00:16C    21:00,17.5C             
+	presence.guests:  hall        0:00,17C   6:00,18.5C  7:30,19.5C  19:30,20C
+					  living      0:00,17C               7:30,19C    19:30,20C
+					  kitchen     0:00,17C   6:00,18.5C  7:30,20C    20:30,17C               
+					  guests      0:00,17C               8:00:16C    21:00,17.5C             
 	
-	presence.patrick:       hall        0:00,16C                7:30:18C    20:30,19C   22:00,17C   
-							living      0:00,16C                7:30:17C    20:30,18C   22:00,17C   
-							kitchen     0:00,16C                7:30,18C    20:30,17C               
-							office      0:00,16C                7:30,19.5C  19:30,16.5C             
-							sleeping    0:00,15C                8:00,10C    22:00,16C               
+	presence.patrick: hall        0:00,16C              7:30:18C    20:30,19C 
+					  living      0:00,16C              7:30:17C    20:30,18C 
+					  kitchen     0:00,16C              7:30,18C    20:30,17C               
+					  office      0:00,16C              7:30,19.5C  19:30,16.5C             
+					  sleeping    0:00,15C              8:00,10C    22:00,16C               
 
 
-Das Script [url]https://github.com/jollyjinx/homematic/blob/master/PresenceTriggersTemperature.hms[/url] wertet diese Tabelle aus, überprüft die Anwesenheits der Personen im Haus, wertet aus ob ein Fenster eine Tür im Raum geöffnet ist oder ob Heizungsrelevante Schalter im Raum aktiv sind. So geht das Script davon aus, dass wenn Licht im Raum brennt, wohl auch jemand anwesend ist.
+Das Script [url]https://github.com/jollyjinx/homematic/blob/master/PresenceTriggersTemperature.hms[/url] wertet diese Tabelle aus, überprüft die Anwesenheit der Personen im Haus, wertet aus ob ein Fenster eine Tür im Raum geöffnet ist oder ob Heizungsrelevante Schalter im Raum aktiv sind. So geht das Script davon aus, dass wenn Licht im Raum brennt, wohl auch jemand anwesend ist.
 Das Script setzt dann die Solltemperatur falls die aktuelle Solltemperatur nicht der berechneten übereinstimmt und das Thermostat im Automatikmodus läuft. Man kann also durch umstellen auf manuellen Thermostatmodus auch die Temperatur manuell verändern.
 
 Das Script habe ich gestern mal zusammengeschrieben, hat aber z.Z. noch die Unzulänglichkeit, dass man die Thermostate erst auf manuell stellen muss, wenn man mal für ein paar Stunden die Automatik nicht greifen lassen will.
@@ -65,6 +65,6 @@ Wenn jemand zu Hause ist, wird der Boiler einmal am Tag um 6:15 Uhr angeschaltet
 Der Boiler wird über ein weiteres Script immer nach einer halben Stunde ausgeschaltet. So kann man den Boiler auch mal zwischendurch manuell anschalten und er schaltet automatisch nach einer halben Stunde aus. Für Gaeste gibt es noch einen Schalter (HM-Sec-SCo:Funk- Tuer-/Fensterkontakt) an der Dusche, der den Boiler automatisch anschaltet sobald Gäste im Haus sind und geduscht wird (damit ist für den nächsten Duschenden auch warmes Wasser bereit). Und zu guter letzt, da ich gerne, wenn ich nach einem Urlaub nach Hause komme, Dusche, habe ich noch ein kleines Script laufen, welches den Boiler einschaltet wenn ich nach einem Urlaub nach Hause komme. [url]https://github.com/jollyjinx/homematic/blob/master/TurnBoilerOnAfterVacation.hms[/url] 
 
 
-Hoffe es gibt Euch Anregungen. Falls Ihr Sachen verbessert könnt Ihr einfach einen Push Request auf GitHub machen.
+Hoffe es gibt Euch Anregungen. Falls Ihr Sachen verbessert, könnt Ihr einfach einen Push Request auf GitHub machen.
 
 Frohe Weihnachten - Patrick
