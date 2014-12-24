@@ -71,29 +71,29 @@ while( -1 != persons.Find(prefix) )
     {                                                                                                       if(debug){WriteLine("Person:"#person#" is present\n\t"#personpreferences);}
         string  currentroom;
         real    newtemp;
-        real    lasttemp;
-        string  s;
+        real    lasttemp	= -1;
+        string  preferences;
         
-        foreach(s,personpreferences.Split(" "))
+        foreach(preferences,personpreferences.Split(" "))
         {
-            if( s.Length() > 1 )
+            if( preferences.Length() > 1 )
             {
-                if( (-1 == s.Find(",")) && (-1 == s.Find(":")) )
+                if( (-1 == preferences.Find(",")) && (-1 == preferences.Find(":")) )
                 {
                     if( currentroom.Length() )
                     {
                         roomtemperatures = roomtemperatures#"\t"#currentroom#","#newtemp#","#lasttemp;
                     }
-                    currentroom = s;
+                    currentroom = preferences;
                 }
                 else
                 {
-                    if( (-1 != s.Find(",")) && (-1 != s.Find(":")) ) 
+                    if( (-1 != preferences.Find(",")) && (-1 != preferences.Find(":")) ) 
                     {
-                        string  timestring  =   s.StrValueByIndex(",",0);
+                        string  timestring  =   preferences.StrValueByIndex(",",0);
                         integer timeseconds =       (3600*(timestring.StrValueByIndex(":",0).ToInteger()))
                                                  +  (  60*(timestring.StrValueByIndex(":",1).ToInteger()));
-                        real    temperature =   s.StrValueByIndex(",",1).ToFloat();
+                        real    temperature =   preferences.StrValueByIndex(",",1).ToFloat();
                         
                         if( timeseconds <= timenow  )
                         {
@@ -260,7 +260,6 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                 {                                                                                           if(debug){WriteLine("Would change Temperature to: "#newsettemp);}
                     if(!debug) { dom.GetObject(thermostatname#".SET_TEMPERATURE").State(newsettemp);}
                 }
-                
             }
         }
     }
