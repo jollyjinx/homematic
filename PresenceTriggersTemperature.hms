@@ -12,6 +12,10 @@ real    openwindowtemp      = 5.0;
 real    compforttemp        = 20.0;
 string  heatingfunctionname = "Heating";                    ! name of the function/"Gewerk" heating objects are put in
 string  prefix              = "presence.";
+
+! be aware to use spaces in the following strings before everything that's not a space
+! otherwise it won't be recognized by a Split(" ")
+
 string  persons             = " 
 
     presence.guests:        hall        0:00,17C    6:00,18.5C  7:30,19.5C  19:30,20C   22:30,17C   
@@ -33,12 +37,11 @@ string  persons             = "
 
 boolean debug               = true;
 
-!
+! 
 !--- no user setable parts below this point 
-!
+! 
 
 integer timenow         =   system.Date("%Y-%m-%d %H:%M:%S").ToTime().ToInteger() % 86400;
-integer fiveminutesago  =   timenow-300;
 integer prefixlength    =   prefix.Length();
 string  roomtemperatures;
 integer index;
@@ -65,13 +68,22 @@ while( -1 != persons.Find(prefix) )
     string  person              = substring2.StrValueByIndex(":",0);
     string  personpreferences   = substring2.Substr(person.Length(),substring2.Length()-person.Length());
 
-    object  presenceobject      = dom.GetObject(prefix#person);
+    object  personvariable      = dom.GetObject(prefix#person);
+    boolean personispresent     = personvariable.Value();
+    boolean personwaspresent    = personvariable.LastValue();
+    integer personchangedtime   = personvariable.Timestamp().ToInteger() % 86400;
+    
+    if(personispresent==personwaspresent)   { personchangedtime = -86400; }                                 if(debug){WriteLine("Person:"#person#" presence:"#personispresent#" since:"#personchangedtime#" waspresent:"#personwaspresent);}
         
-    if( true == presenceobject.Value() )
-    {                                                                                                       if(debug){WriteLine("Person:"#person#" is present\n\t"#personpreferences);}
+    if( true == personispresent )
+    {                                                                                                       if(debug){WriteLine("\n\t"#personpreferences);}
         string  currentroom;
-        real    newtemp;
-        real    lasttemp	= -1;
+        
+        integer currentchangetime   = -1;
+        real    currentchangetemp   = -1;
+        integer lastchangetime      = -1;
+        real    lastchangetemp      = 0;
+        
         string  preferences;
         
         foreach(preferences,personpreferences.Split(" "))
@@ -81,8 +93,8 @@ while( -1 != persons.Find(prefix) )
                 if( (-1 == preferences.Find(",")) && (-1 == preferences.Find(":")) )
                 {
                     if( currentroom.Length() )
-                    {
-                        roomtemperatures = roomtemperatures#"\t"#currentroom#","#newtemp#","#lasttemp;
+                    {                                                                                       if(debug){WriteLine("\troom:"#currentroom#","#currentchangetime#","#currentchangetemp#","#lastchangetime#","#lastchangetemp);}
+                        roomtemperatures = roomtemperatures#"\t"#currentroom#","#currentchangetime#","#currentchangetemp#","#lastchangetime#","#lastchangetemp;
                     }
                     currentroom = preferences;
                 }
@@ -95,21 +107,28 @@ while( -1 != persons.Find(prefix) )
                                                  +  (  60*(timestring.StrValueByIndex(":",1).ToInteger()));
                         real    temperature =   preferences.StrValueByIndex(",",1).ToFloat();
                         
-                        if( timeseconds <= timenow  )
+                        if( timeseconds <= timenow )
                         {
-                            newtemp = temperature;
+                            lastchangetime      = currentchangetime;
+                            lastchangetemp      = currentchangetemp;
+                            currentchangetime   = timeseconds;
+                            currentchangetemp   = temperature;
                         }
-                        if( timeseconds <= fiveminutesago )
+                        else
                         {
-                            lasttemp = temperature;
+                            if( lastchangetime < 0 )
+                            {
+                                lastchangetime      = timeseconds-86400;
+                                lastchangetemp      = temperature;
+                            }
                         }
                     }
                 }
             }
         }
         if( currentroom.Length() )
-        {
-            roomtemperatures = roomtemperatures#"\t"#currentroom#","#newtemp#","#lasttemp;
+        {                                                                                                   if(debug){WriteLine("\troom:"#currentroom#","#currentchangetime#","#currentchangetemp#","#lastchangetime#","#lastchangetemp);}
+            roomtemperatures = roomtemperatures#"\t"#currentroom#","#currentchangetime#","#currentchangetemp#","#lastchangetime#","#lastchangetemp;
         }
     }
     else
@@ -212,8 +231,10 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                     
                     if( roomnameset == room )
                     {                                                                                       if(debug){WriteLine("\t found room:"#roomtemperatureset);}
-                        real    newtempset  =   roomtemperatureset.StrValueByIndex(",",1).ToFloat();
-                        real    lasttempset =   roomtemperatureset.StrValueByIndex(",",2).ToFloat();
+                        integer newtime     =   roomtemperatureset.StrValueByIndex(",",1).ToInteger();
+                        real    newtempset  =   roomtemperatureset.StrValueByIndex(",",2).ToFloat();
+                        integer lasttime    =   roomtemperatureset.StrValueByIndex(",",3).ToInteger();
+                        real    lasttempset =   roomtemperatureset.StrValueByIndex(",",4).ToFloat();
                         
                         if( newtempset > newtemp )
                         {
