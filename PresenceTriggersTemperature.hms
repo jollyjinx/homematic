@@ -1,261 +1,261 @@
 
-real	miniumroomtemp		= 10.0;
-real	openwindowtemp		= 5.0;
-real	compforttemp		= 20.0;
-string	heatingfunctionname	= "Heating";					! name of the function/"Gewerk" heating objects are put in
-string 	prefix 				= "presence.";
-string	persons				= "	
+real    miniumroomtemp      = 10.0;
+real    openwindowtemp      = 5.0;
+real    compforttemp        = 20.0;
+string  heatingfunctionname = "Heating";                    ! name of the function/"Gewerk" heating objects are put in
+string  prefix              = "presence.";
+string  persons             = " 
 
-	presence.guests:		hall		0:00,17C	6:00,18.5C	7:30,19.5C	19:30,20C	22:30,17C	
-							living		0:00,17C				7:30,19C	19:30,20C	22:30,17C	
-							kitchen		0:00,17C	6:00,18.5C	7:30,20C	20:30,17C				
-							guests		0:00,17C				8:00:16C	21:00,17.5C				
-	
-	presence.patrick:		hall		0:00,16C				7:30:18C	20:30,19C	22:00,17C	
-							living		0:00,16C				7:30:17C	20:30,18C	22:00,17C	
-							kitchen		0:00,16C				7:30,18C	20:30,17C				
-							office		0:00,16C				7:30,19.5C	19:30,16.5C				
-							sleeping	0:00,15C				8:00,10C	22:00,16C				
-	
-	presence.isabel:		hall		0:00,18C	6:00,18.5C	7:30,19.5C	19:30,20C	22:30,17C	
-							living		0:00,18C				7:30,19C	19:30,20C	22:30,17C	
-							kitchen		0:00,17C	6:00,18.5C	7:30,20C	20:30,17C				
-							isabel		0:00,17.5C				7:30,20C	19:30,17.5C				
-						";
+    presence.guests:        hall        0:00,17C    6:00,18.5C  7:30,19.5C  19:30,20C   22:30,17C   
+                            living      0:00,17C                7:30,19C    19:30,20C   22:30,17C   
+                            kitchen     0:00,17C    6:00,18.5C  7:30,20C    20:30,17C               
+                            guests      0:00,17C                8:00:16C    21:00,17.5C             
+    
+    presence.patrick:       hall        0:00,16C                7:30:18C    20:30,19C   22:00,17C   
+                            living      0:00,16C                7:30:17C    20:30,18C   22:00,17C   
+                            kitchen     0:00,16C                7:30,18C    20:30,17C               
+                            office      0:00,16C                7:30,19.5C  19:30,16.5C             
+                            sleeping    0:00,15C                8:00,10C    22:00,16C               
+    
+    presence.isabel:        hall        0:00,18C    6:00,18.5C  7:30,19.5C  19:30,20C   22:30,17C   
+                            living      0:00,18C                7:30,19C    19:30,20C   22:30,17C   
+                            kitchen     0:00,17C    6:00,18.5C  7:30,20C    20:30,17C               
+                            isabel      0:00,17.5C              7:30,20C    19:30,17.5C             
+                        ";
 
-boolean	debug				= true;
+boolean debug               = true;
 
 !
 !--- no user setable parts below this point 
 !
 
-integer	timenow			= 	system.Date("%Y-%m-%d %H:%M:%S").ToTime().ToInteger() % 86400;
-integer	fiveminutesago	=	timenow-300;
-integer	prefixlength	= 	prefix.Length();
-string	roomtemperatures;
+integer timenow         =   system.Date("%Y-%m-%d %H:%M:%S").ToTime().ToInteger() % 86400;
+integer fiveminutesago  =   timenow-300;
+integer prefixlength    =   prefix.Length();
+string  roomtemperatures;
 integer index;
 
 while( -1 != persons.Find(prefix) )
 {
-	integer	index1    	= persons.Find(prefix);
-	integer	offset1		= index1 + prefixlength;
-	string	substring1  = persons.Substr(offset1,persons.Length()-offset1);
-	string	substring2;
-	
-	if( -1 != substring1.Find(prefix) )
-	{
-		integer index2 	= substring1.Find(prefix);
-		substring2 		= substring1.Substr(0,index2);
-		persons 		= substring1.Substr(index2,substring1.Length()-index2);
-	}
-	else
-	{
-		persons 	= "";
-		substring2 	= substring1;
-	}
+    integer index1      = persons.Find(prefix);
+    integer offset1     = index1 + prefixlength;
+    string  substring1  = persons.Substr(offset1,persons.Length()-offset1);
+    string  substring2;
+    
+    if( -1 != substring1.Find(prefix) )
+    {
+        integer index2  = substring1.Find(prefix);
+        substring2      = substring1.Substr(0,index2);
+        persons         = substring1.Substr(index2,substring1.Length()-index2);
+    }
+    else
+    {
+        persons     = "";
+        substring2  = substring1;
+    }
 
-	string	person				= substring2.StrValueByIndex(":",0);
-	string	personpreferences	= substring2.Substr(person.Length(),substring2.Length()-person.Length());
+    string  person              = substring2.StrValueByIndex(":",0);
+    string  personpreferences   = substring2.Substr(person.Length(),substring2.Length()-person.Length());
 
-	object	presenceobject		= dom.GetObject(prefix#person);
-		
-	if( true == presenceobject.Value() )
-	{																										if(debug){WriteLine("Person:"#person#" is present\n\t"#personpreferences);}
-		string	currentroom;
-		real	newtemp;
-		real	lasttemp;
-		string	s;
-		
-		foreach(s,personpreferences.Split("\s"))
-		{
-			if( s.Length() > 1 )
-			{
-				if( (-1 == s.Find(",")) && (-1 == s.Find(":")) )
-				{
-					if( currentroom.Length() )
-					{
-						roomtemperatures = roomtemperatures#"\t"#currentroom#","#newtemp#","#lasttemp;
-					}
-					currentroom = s;
-				}
-				else
-				{
-					if( (-1 != s.Find(",")) && (-1 != s.Find(":")) ) 
-					{
-						string	timestring	=	s.StrValueByIndex(",",0);
-						integer	timeseconds	=		(3600*(timestring.StrValueByIndex(":",0).ToInteger()))
-												 + 	(  60*(timestring.StrValueByIndex(":",1).ToInteger()));
-						real	temperature	=	s.StrValueByIndex(",",1).ToFloat();
-						
-						if( timeseconds	<= timenow	)
-						{
-							newtemp = temperature;
-						}
-						if( timeseconds <= fiveminutesago )
-						{
-							lasttemp = temperature;
-						}
-					}
-				}
-			}
-		}
-		if( currentroom.Length() )
-		{
-			roomtemperatures = roomtemperatures#"\t"#currentroom#","#newtemp#","#lasttemp;
-		}
-	}
-	else
-	{
-																											if(debug){WriteLine("Person:"#person#" is absent");}
-	}
+    object  presenceobject      = dom.GetObject(prefix#person);
+        
+    if( true == presenceobject.Value() )
+    {                                                                                                       if(debug){WriteLine("Person:"#person#" is present\n\t"#personpreferences);}
+        string  currentroom;
+        real    newtemp;
+        real    lasttemp;
+        string  s;
+        
+        foreach(s,personpreferences.Split(" "))
+        {
+            if( s.Length() > 1 )
+            {
+                if( (-1 == s.Find(",")) && (-1 == s.Find(":")) )
+                {
+                    if( currentroom.Length() )
+                    {
+                        roomtemperatures = roomtemperatures#"\t"#currentroom#","#newtemp#","#lasttemp;
+                    }
+                    currentroom = s;
+                }
+                else
+                {
+                    if( (-1 != s.Find(",")) && (-1 != s.Find(":")) ) 
+                    {
+                        string  timestring  =   s.StrValueByIndex(",",0);
+                        integer timeseconds =       (3600*(timestring.StrValueByIndex(":",0).ToInteger()))
+                                                 +  (  60*(timestring.StrValueByIndex(":",1).ToInteger()));
+                        real    temperature =   s.StrValueByIndex(",",1).ToFloat();
+                        
+                        if( timeseconds <= timenow  )
+                        {
+                            newtemp = temperature;
+                        }
+                        if( timeseconds <= fiveminutesago )
+                        {
+                            lasttemp = temperature;
+                        }
+                    }
+                }
+            }
+        }
+        if( currentroom.Length() )
+        {
+            roomtemperatures = roomtemperatures#"\t"#currentroom#","#newtemp#","#lasttemp;
+        }
+    }
+    else
+    {
+                                                                                                            if(debug){WriteLine("Person:"#person#" is absent");}
+    }
 }
-	if(debug){WriteLine("\t"#roomtemperatures);}
+    if(debug){WriteLine("\t"#roomtemperatures);}
 
 
-string	roomid;
+string  roomid;
 foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
 {
-    object	room 				= dom.GetObject(roomid);													if(debug){WriteLine("\n\nroom:"#room);}
-	boolean	openwindowordoor	= false;
-	boolean	somebodyispresent	= false;
-	string	thermostatdevices;
-	string	channelid;
-	
-	foreach(channelid,dom.GetObject(room).EnumUsedIDs())
-	{																										if(debug){WriteLine("\t channelid:"#channelid);}
-		object	channel				= dom.GetObject(channelid);												if(debug){WriteLine("\t channel:"#channel);}
-		string	functionID;
-		
-		foreach(functionID,channel.ChnFunction().EnumUsedIDs())
-		{
-			object function=dom.GetObject(functionID);														
-			
-			if( heatingfunctionname == function.Name() )
-			{
-				object	device 		= dom.GetObject(channel.Device());										if(debug){WriteLine("\t device:"#device);}
-				string	devicehssid	= device.HSSID();														if(debug){WriteLine("\t devicehssid:"#devicehssid);}
+    object  room                = dom.GetObject(roomid);                                                    if(debug){WriteLine("\n\nroom:"#room);}
+    boolean openwindowordoor    = false;
+    boolean somebodyispresent   = false;
+    string  thermostatdevices;
+    string  channelid;
+    
+    foreach(channelid,dom.GetObject(room).EnumUsedIDs())
+    {                                                                                                       if(debug){WriteLine("\t channelid:"#channelid);}
+        object  channel             = dom.GetObject(channelid);                                             if(debug){WriteLine("\t channel:"#channel);}
+        string  functionID;
+        
+        foreach(functionID,channel.ChnFunction().EnumUsedIDs())
+        {
+            object function=dom.GetObject(functionID);                                                      
+            
+            if( heatingfunctionname == function.Name() )
+            {
+                object  device      = dom.GetObject(channel.Device());                                      if(debug){WriteLine("\t device:"#device);}
+                string  devicehssid = device.HSSID();                                                       if(debug){WriteLine("\t devicehssid:"#devicehssid);}
 
-				if( "HM-CC-RT-DN" == devicehssid )
-				{
-        				var interface=dom.GetObject(channel.Interface());
-						WriteLine("\t\t channel.Interface:"#interface);
-						WriteLine("\t\t channel.Interface.Name:"#interface.Name());
-						thermostatdevices = thermostatdevices # "\t" # interface # "." # channel.Address();
+                if( "HM-CC-RT-DN" == devicehssid )
+                {
+                        var interface=dom.GetObject(channel.Interface());
+                        WriteLine("\t\t channel.Interface:"#interface);
+                        WriteLine("\t\t channel.Interface.Name:"#interface.Name());
+                        thermostatdevices = thermostatdevices # "\t" # interface # "." # channel.Address();
 
-				}
-				else
-				{
-					if( !openwindowordoor )
-					{
-						string datapointid;
-						foreach(datapointid,channel.DPs().EnumUsedIDs())
-						{
-							var datapoint	= dom.GetObject(datapointid);
+                }
+                else
+                {
+                    if( !openwindowordoor )
+                    {
+                        string datapointid;
+                        foreach(datapointid,channel.DPs().EnumUsedIDs())
+                        {
+                            var datapoint   = dom.GetObject(datapointid);
 
-							if(OPERATION_READ & datapoint.Operations())
-							{
-								string	dpname = datapoint.Name();
+                            if(OPERATION_READ & datapoint.Operations())
+                            {
+                                string  dpname = datapoint.Name();
 
-								if( -1 != dpname.Find(".STATE") )
-								{																		if(debug){WriteLine("\t Datapoint:"#dpname);}
-									if( 0 == devicehssid.Find("HM-Sec-") )
-									{																	if(debug){WriteLine("\t WindowOrDoor: state:"#datapoint.Value());}
-										if( datapoint.Value() )
-										{
-											openwindowordoor = true;									
-										}
-									}
-									else
-									{
-										if( (!somebodyispresent) && (datapoint.Value()) )
-										{																if(debug){WriteLine("\t Somebody is present in room:"#datapoint.Value());}
-											somebodyispresent = true;
-										}
-									}
-								}
-							}
-						}							
-					}
-				}
-			}
-		}
-	}
-	
-	if(debug){ WriteLine("\tThermostats:"#thermostatdevices#" Somebodyispresent in room:"#somebodyispresent#"\topen window or door:"#openwindowordoor);}
-	
-	if( thermostatdevices.Length() )
-	{
-		real	newtemp		= miniumroomtemp;
-		real	lasttemp	= miniumroomtemp;
+                                if( -1 != dpname.Find(".STATE") )
+                                {                                                                       if(debug){WriteLine("\t Datapoint:"#dpname);}
+                                    if( 0 == devicehssid.Find("HM-Sec-") )
+                                    {                                                                   if(debug){WriteLine("\t WindowOrDoor: state:"#datapoint.Value());}
+                                        if( datapoint.Value() )
+                                        {
+                                            openwindowordoor = true;                                    
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if( (!somebodyispresent) && (datapoint.Value()) )
+                                        {                                                               if(debug){WriteLine("\t Somebody is present in room:"#datapoint.Value());}
+                                            somebodyispresent = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }                           
+                    }
+                }
+            }
+        }
+    }
+    
+    if(debug){ WriteLine("\tThermostats:"#thermostatdevices#" Somebodyispresent in room:"#somebodyispresent#"\topen window or door:"#openwindowordoor);}
+    
+    if( thermostatdevices.Length() )
+    {
+        real    newtemp     = miniumroomtemp;
+        real    lasttemp    = miniumroomtemp;
 
-		if( openwindowordoor )
-		{
-			newtemp		= openwindowtemp;
-			lasttemp	= openwindowtemp;
-		}
-		else
-		{
-			string	roomtemperatureset;
-			foreach(roomtemperatureset,roomtemperatures)
-			{
-				if( roomtemperatureset.Length() > 0 )
-				{																							if(debug){WriteLine("\t testing room:"#roomtemperatureset);}
-					string	roomnameset	=	roomtemperatureset.StrValueByIndex(",",0).ToString();			
-					
-					if( roomnameset == room )
-					{																						if(debug){WriteLine("\t found room:"#roomtemperatureset);}
-						real	newtempset	=	roomtemperatureset.StrValueByIndex(",",1).ToFloat();
-						real	lasttempset	=	roomtemperatureset.StrValueByIndex(",",2).ToFloat();
-						
-						if( newtempset > newtemp )
-						{
-							newtemp 	= newtempset;
-							lasttemp	= lasttempset;
-						}
-					}
-				}
-			}
-			if( somebodyispresent && (newtemp==miniumroomtemp) )
-			{																								if(debug){WriteLine("\t somebodyispresent override minimumroomtemp");}
-				newtemp		= compforttemp;
-				lasttemp	= compforttemp;
-			}
-		}
+        if( openwindowordoor )
+        {
+            newtemp     = openwindowtemp;
+            lasttemp    = openwindowtemp;
+        }
+        else
+        {
+            string  roomtemperatureset;
+            foreach(roomtemperatureset,roomtemperatures)
+            {
+                if( roomtemperatureset.Length() > 0 )
+                {                                                                                           if(debug){WriteLine("\t testing room:"#roomtemperatureset);}
+                    string  roomnameset =   roomtemperatureset.StrValueByIndex(",",0).ToString();           
+                    
+                    if( roomnameset == room )
+                    {                                                                                       if(debug){WriteLine("\t found room:"#roomtemperatureset);}
+                        real    newtempset  =   roomtemperatureset.StrValueByIndex(",",1).ToFloat();
+                        real    lasttempset =   roomtemperatureset.StrValueByIndex(",",2).ToFloat();
+                        
+                        if( newtempset > newtemp )
+                        {
+                            newtemp     = newtempset;
+                            lasttemp    = lasttempset;
+                        }
+                    }
+                }
+            }
+            if( somebodyispresent && (newtemp==miniumroomtemp) )
+            {                                                                                               if(debug){WriteLine("\t somebodyispresent override minimumroomtemp");}
+                newtemp     = compforttemp;
+                lasttemp    = compforttemp;
+            }
+        }
 
-		if(debug){WriteLine("\n newtemp:"#newtemp#"\t lasttemp"#lasttemp);}
-		
-		! modes
-		! 0 = auto
-		! 1 = manu
-		! 2 = party
-		! 3 = boost
+        if(debug){WriteLine("\n newtemp:"#newtemp#"\t lasttemp"#lasttemp);}
+        
+        ! modes
+        ! 0 = auto
+        ! 1 = manu
+        ! 2 = party
+        ! 3 = boost
 
-		string	thermostatname;
-		foreach(thermostatname,thermostatdevices)
-		{																									if(debug){WriteLine("thermostatname: "#thermostatname);}
-			integer currentmode = dom.GetObject(thermostatname#".CONTROL_MODE").Value();                    if(debug){WriteLine("\tCurrent mode: "#currentmode);}
-			
-			if( 0 == currentmode )
-			{
-				real	termostattempcurrent	= dom.GetObject(thermostatname#".SET_TEMPERATURE").Value();			if(debug){WriteLine("\t settemp: "#termostattempcurrent);}
-				real	termostattemplast		= dom.GetObject(thermostatname#".SET_TEMPERATURE").LastValue();		if(debug){WriteLine("\t termostattemplast: "#termostattemplast);}
+        string  thermostatname;
+        foreach(thermostatname,thermostatdevices)
+        {                                                                                                   if(debug){WriteLine("thermostatname: "#thermostatname);}
+            integer currentmode = dom.GetObject(thermostatname#".CONTROL_MODE").Value();                    if(debug){WriteLine("\tCurrent mode: "#currentmode);}
+            
+            if( 0 == currentmode )
+            {
+                real    termostattempcurrent    = dom.GetObject(thermostatname#".SET_TEMPERATURE").Value();         if(debug){WriteLine("\t settemp: "#termostattempcurrent);}
+                real    termostattemplast       = dom.GetObject(thermostatname#".SET_TEMPERATURE").LastValue();     if(debug){WriteLine("\t termostattemplast: "#termostattemplast);}
 
-				real	newsettemp				= termostattempcurrent;
+                real    newsettemp              = termostattempcurrent;
 
-				if( lasttemp == termostattemplast )
-				{																							if(debug){WriteLine("lasttemp == termostattemplast: "#lasttemp);}
-					newsettemp = newtemp;
-				}
-				newsettemp = newtemp;
+                if( lasttemp == termostattemplast )
+                {                                                                                           if(debug){WriteLine("lasttemp == termostattemplast: "#lasttemp);}
+                    newsettemp = newtemp;
+                }
+                newsettemp = newtemp;
 
-				if( newsettemp != termostattempcurrent )
-				{																							if(debug){WriteLine("Would change Temperature to: "#newsettemp);}
-					if(!debug) { dom.GetObject(thermostatname#".SET_TEMPERATURE").State(newsettemp);}
-				}
-				
-			}
-		}
-	}
+                if( newsettemp != termostattempcurrent )
+                {                                                                                           if(debug){WriteLine("Would change Temperature to: "#newsettemp);}
+                    if(!debug) { dom.GetObject(thermostatname#".SET_TEMPERATURE").State(newsettemp);}
+                }
+                
+            }
+        }
+    }
 } 
 
 
