@@ -1,3 +1,11 @@
+!https://github.com/jollyjinx/homematic/blob/master/PresenceTriggersTemperature.hms
+!
+! This script changes the SET_TEMPERATURE of thermostats depending if a person is present
+! in a room.
+! If there are persons present in the house hand have a location/time/temperature table
+! It uses the function/Gewerk 'Heating' to find out switched in that room to deduce presence of someone
+! If there are openings in the 'Heating' function/Gewerk so not to heat
+!
 
 real    miniumroomtemp      = 10.0;
 real    openwindowtemp      = 5.0;
