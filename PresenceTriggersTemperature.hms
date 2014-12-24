@@ -215,7 +215,7 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                     }
                 }
             }
-            if( somebodyispresent && (newtemp==miniumroomtemp) )
+            if( somebodyispresent && (newtemp<compforttemp) )
             {                                                                                               if(debug){WriteLine("\t somebodyispresent override minimumroomtemp");}
                 newtemp     = compforttemp;
                 lasttemp    = compforttemp;
