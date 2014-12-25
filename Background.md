@@ -97,6 +97,4 @@ Wenn jemand zu Hause ist, wird der Boiler einmal am Tag um 6:15 Uhr angeschaltet
 Der Boiler wird über ein weiteres Script immer nach einer halben Stunde ausgeschaltet. So kann man den Boiler auch mal zwischendurch manuell anschalten und er schaltet automatisch nach einer halben Stunde aus. Für Gaeste gibt es noch einen Schalter (HM-Sec-SCo:Funk- Tuer-/Fensterkontakt) an der Dusche, der den Boiler automatisch anschaltet sobald Gäste im Haus sind und geduscht wird (damit ist für den nächsten Duschenden auch warmes Wasser bereit). Und zu guter letzt, da ich gerne, wenn ich nach einem Urlaub nach Hause komme, Dusche, habe ich noch ein kleines Script laufen, welches den Boiler einschaltet wenn ich nach einem Urlaub nach Hause komme. [TurnBoilerOnAfterVacation.hms](TurnBoilerOnAfterVacation.hms)
 
 
-Hoffe es gibt Euch Anregungen. Falls Ihr Sachen verbessert, könnt Ihr einfach einen Push Request auf GitHub machen.
-
-Frohe Weihnachten - Patrick
+Hoffe es gibt Euch Anregungen. Falls Ihr Sachen verbessert, könnt Ihr einfach einen Pull Request auf GitHub machen.
