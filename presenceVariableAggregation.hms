@@ -1,99 +1,124 @@
 ! https://github.com/jollyjinx/homematic/blob/master/presenceVariableAggregation.hms
 !
-! Aggregates variables to ones that are used in scripts.
-! I have multiple variables that detect presence:
+! Aggregates presence variables to ones that are used in scripts.
 !
-! The aggregated variables are in the form:
+! Not all persons have a WLAN device to track their presence in the house. 
+! So I have variables that can be manually set, or set via a calendar/timetable.
 !
-! presence.any          is anybody home
-! presence.guests       are guests at home
-! presence.patrick      i'm at home
-! presence....
+! Presence variables have the form: 	presense.[presencetype].[personname]
+! Aggregated variables have the form:	presense.[personname] and presence.any
 !
-! Those variables are aggregated through variables named presence.type.personname
+! Lets assume the following variables are set:
 !
-! presence.wlan.guests          someone is in the guest wlan
-! presence.wlan.patrick         i'm logged in to the wlan
+!	 presence.wlan.guests:		 away
+!	 presence.wlan.patrick:		 PRESENT		My phone is logged to the wlan
+!	 presence.wlan.isabel:		 away
 !
-! presence.manual.guests        manually set via a virtual ccu2 switch
-! presence.timetable.patrick    presence set via a timetable
-
-
+!	 presence.manual.guests:	 away
+!	 presence.manual.patrick:	 away
+!	 presence.manual.isabel:	 PRESENT		manually set via a virtual ccu2 switch
+!
+!	 presence.calender.guests:	 away			presence set via a timetable
+!	 presence.calender.patrick:	 away
+!	 presence.calender.isabel:	 away
+!	 .
+!	 .
+!	 .
+! Those variables are aggregated with this through variables named presence.type.personname
+! This script creates then aggregated presence variables:
+!
+!	 presence.any:			 PRESENT		 
+!	 presence.guests:		 away
+!	 presence.patrick:		 PRESENT
+!	 presence.isabel:		 PRESENT
+!	 .
+!	 .
+!	 .
+!
+! As I have a timetable for my daughter isabel and she has no presence device
+! she is set at home via a timetable or manually. As she is not at home alone
+! her aggregated presence is only set when someone else is at home.
+!
+!
 !----- User setable variables
 
-string  presenceprefix          = "presence";
-string  allpersonspresencename  = "any";
-boolean debug                   = true;
+string	presenceprefix	= "presence";
+string	anyperson		= "any";
+string	kids			= "isabel";			! comma seperated list
+boolean debug			= true;
 
+! 
 !------- nothing needs to be changed below.
+! 
 
-string  allvariables        = ","#allpersonspresencename#",";
-string  presencevariables    = ",";
-boolean someoneispresent    = false;
+string	allpersons		= ","#anyperson#",";
+string	allkids			= ","#kids#",";
+string	presentpersons	= ",";
+boolean adultispresent	= false;
 
 string variableID;
 
 foreach(variableID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()) 
 {
-    string  variablename    = dom.GetObject(variableID).Name();                     if(debug){WriteLine("Variable:"#variablename);}
-    if( presenceprefix == variablename.StrValueByIndex(".",0) )
-    {
-        string  persontype      = variablename.StrValueByIndex(".",2);
-        
-        if( persontype.Length() > 0 )
-        {
-            if( -1 == allvariables.Find(","#persontype#",") )
-            {
-                allvariables = allvariables#persontype#",";                         if(debug){WriteLine("\tAdding to all:"#persontype);}
-            }
-            if( -1 == presencevariables.Find(","#persontype#",") )
-            {           
-                var variablevalue   = dom.GetObject(variablename).Value();          if(debug){WriteLine("\t"#variablename#":"#variablevalue);}
-                
-                if( true == variablevalue )
-                {
-                    if( !someoneispresent )
-                    {
-                        presencevariables = ","#allpersonspresencename#",";          if(debug){WriteLine("\tsomeoneispresent is present.");}
-                        someoneispresent = true;
-                    }
-                    presencevariables = presencevariables#persontype#",";             if(debug){WriteLine("\tpresencevariables:"#presencevariables);}
-                }   
-            }
-            else
-            {
-                                                                                    if(debug){WriteLine("\t"#persontype#" already present");}
-            }
-        }
-    }
+	string	variablename	= dom.GetObject(variableID).Name();						if(debug){WriteLine("Variable:"#variablename);}
+	
+	if( presenceprefix == variablename.StrValueByIndex(".",0) )
+	{																				if(debug){WriteLine("\t is presence variable");}
+		string	personname	= variablename.StrValueByIndex(".",2);
+		
+		if( (personname.Length() > 0) && (personname != anyperson) )
+		{																			if(debug){WriteLine("\t personname:"#personname);}
+			if( -1 == allpersons.Find(","#personname#",") )
+			{
+				allpersons	= allpersons#personname#",";							if(debug){WriteLine("\tAdding to all:"#personname);}
+			}
+			if( -1 == presentpersons.Find(","#personname#",") )
+			{	
+				boolean	personispresent	= dom.GetObject(variablename).Value();		if(debug){WriteLine("\t"#personname#" is present:"#personispresent);}
+				
+				if( true == personispresent )
+				{
+					if( (!adultispresent) && (-1 == personname.Find(","#allkids#",")) )
+					{
+						adultispresent	= true;
+						presentpersons	= ","#anyperson#presentpersons;				if(debug){WriteLine("\tadultispresent is present.");}
+					}
+					presentpersons	= presentpersons#personname#",";				if(debug){WriteLine("\tpresentpersons:"#presentpersons);}
+				}	
+			}
+			else
+			{
+																					if(debug){WriteLine("\t"#personname#" already present");}
+			}
+		}
+	}
 }
 
 
-if(debug) { WriteLine("AllPersontypes:"#allvariables); }
-if(debug) { WriteLine("Present:"#presencevariables); }
+if(debug) { WriteLine("\nallpersons:"#allpersons#"\n\tpresentpersons:"#presentpersons#"\n\tadultispresent:"#adultispresent); }
 
 
-string persontype;
+string personname;
 
-foreach(persontype,allvariables.Split(","))
+foreach(personname,allpersons.Split(","))
 {
-    if( persontype.Length() > 0 )
-    {
-        boolean ispresent = false;
-        
-        if( -1 != presencevariables.Find(","#persontype#",") )
-        {                                                                               if(debug){WriteLine("\tpersontype found:"#persontype);}
-            ispresent = true;
-        }
-        
-        var presencevariable = dom.GetObject("presence."#persontype);
-        if( ispresent != presencevariable.Value() )
-        {                                                                               if(debug){WriteLine("\tpresence."#persontype#" has changed:"#ispresent);}
-            presencevariable.State(ispresent);
-        }
-        else
-        {                                                                               if(debug){WriteLine("\tpresence."#persontype#" has not changed:"#ispresent);}
+	if( personname.Length() > 0 )
+	{
+		boolean ispresent = false;
+		
+		if( (adultispresent) && (-1 != presentpersons.Find(","#personname#",")) )
+		{																			if(debug){WriteLine("\tpersonname found:"#personname);}
+			ispresent = true;
+		}
+		
+		var presencevariable = dom.GetObject("presence."#personname);
+		if( ispresent != presencevariable.Value() )
+		{																			if(debug){WriteLine("\tpresence."#personname#" has changed:"#ispresent);}
+			if(!debug){presencevariable.State(ispresent);}
+		}
+		else
+		{																			if(debug){WriteLine("\tpresence."#personname#" has not changed:"#ispresent);}
 
-        }
-    }
+		}
+	}
 }
