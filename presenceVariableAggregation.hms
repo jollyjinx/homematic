@@ -76,9 +76,9 @@ foreach(variableID, dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs())
             {   
                 boolean personispresent = dom.GetObject(variablename).Value();      if(debug){WriteLine("\t"#personname#" is present:"#personispresent);}
                 
-                if( true == personispresent )
+                if( personispresent )
                 {
-                    if( (!adultispresent) && (-1 == personname.Find(","#allkids#",")) )
+                    if( (!adultispresent) && (-1 == allkids.Find(","#personname#",")) )
                     {
                         adultispresent  = true;
                         presentpersons  = ","#anyperson#presentpersons;             if(debug){WriteLine("\tadultispresent is present.");}
