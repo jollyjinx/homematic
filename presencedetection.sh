@@ -46,19 +46,70 @@ countsaspresent=45                                  # how many loops of looptime
 intialpresencecount=4                               # default counter for each presence variable at start
 variableprefix="presence.wlan."                     # prefix for the variables on the ccu2
 someonename="any"                                   # variable name if someone is present
- 
+debug=false
+$debug && looptime=5
+
 #
 # There is nothing below this line that needs to be changed 
 #
 # creating variables on CCU2 if they don't exist and set currentpresence to initialpresense
 #
-for name in $@ $someonename
-do
-    postbody="string v='$variableprefix$name';boolean f=true;string i;foreach(i,dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()){if(v==dom.GetObject(i).Name()){f=false;}};if(f){object s=dom.GetObject(ID_SYSTEM_VARIABLES);object n=dom.CreateObject(OT_VARDP);n.Name(v);s.Add(n.ID());n.ValueType(ivtBinary);n.ValueSubType(2);n.DPInfo(v#' is at home');n.ValueName1('anwesend');n.ValueName0('abwesend');n.State(false);dom.RTUpdate(0);}"
+RETURN_FAILURE=1
+RETURN_SUCCESS=0
+
+
+getorsetpresenceVariableState()
+{
+    local name=$1
+    local setstate=$2
+    local wgetreturn=$(wget -q -O - "http://$ccu2address:8181/rega.exe?state=dom.GetObject('$variableprefix$name').State($setstate)"|egrep -o '<state>(false|true)</state></xml>$')
+
+    if [ "<state>true</state></xml>" == "$wgetreturn" ]
+    then
+        echo -n "1"
+        return $RETURN_SUCCESS
+    fi
+    
+    if [ "<state>false</state></xml>" == "$wgetreturn" ]
+    then
+        echo -n "0"
+        return $RETURN_SUCCESS
+    fi
+    echo -n "-1"
+    return $RETURN_FAILURE
+}
+
+createPresenceVariableOnCCUIfNeeded()
+{
+    local name=$1
+
+    getorsetpresenceVariableState $name >/dev/null  && return $RETURN_SUCCESS
+    
+    if [ ! -f /usr/bin/nc ]
+    then
+        echo "WARNING: /usr/bin/nc does not exist you need to create $variableprefix$name on CCU2 manually"
+        return $RETURN_FAILURE
+    fi
+    
+    local postbody="string v='$variableprefix$name';boolean f=true;string i;foreach(i,dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()){if(v==dom.GetObject(i).Name()){f=false;}};if(f){object s=dom.GetObject(ID_SYSTEM_VARIABLES);object n=dom.CreateObject(OT_VARDP);n.Name(v);s.Add(n.ID());n.ValueType(ivtBinary);n.ValueSubType(2);n.DPInfo(v#' is at home');n.ValueName1('anwesend');n.ValueName0('abwesend');n.State(false);dom.RTUpdate(0);}"
     postlength=$(echo "$postbody" | wc -c)
     echo -e "POST /tclrega.exe HTTP/1.0\r\nContent-Length: $postlength\r\n\r\n$postbody" |nc "$ccu2address" 80 >/dev/null 2>&1
+
+    getorsetpresenceVariableState $name >/dev/null
+}
+
+
+#
+# main
+#
+
+for name in $@ $someonename
+do
+    createPresenceVariableOnCCUIfNeeded $name
     eval currentpresence$name=$intialpresencecount
+    eval currentstate$name=`getorsetpresenceVariableState $name`
 done
+
 
 #
 # This is the main loop to check if somebody is present
@@ -73,40 +124,57 @@ do
         if [ $name != $someonename ]
         then
             eval addresstocheck=\$$name
-            grepoutput=$(echo "$arpoutput"|egrep -i "$addresstocheck")
-            # echo "Found $name found:$grepoutput"
+            grepoutput=$(echo "$arpoutput"|egrep -io "$addresstocheck")
         else
             grepoutput=$anyoutput
         fi
         
         eval currentpresence=\$currentpresence$name
         eval currentstate=\$currentstate$name
-        
+       
         if [ -n "$grepoutput" ];
         then
+            $debug && echo "Found $name in grep"
             eval currentpresence$name=$countsaspresent
-            anyoutput="1"
+            anyoutput=$anyoutput','$name
             isalive="1"
+            booleanisalive="true"
         else
+            $debug && echo "Did not find $name in arp table."
             eval currentpresence$name=`expr $currentpresence - 1 \| 1 `
             isalive="0"
+            booleanisalive="false"
         fi
         
         eval newvalue=\$currentpresence$name
         
-        if [ $newvalue -ne $currentpresence -a \( $newvalue -eq 1 -o $newvalue -eq $countsaspresent \) -a \( $isalive != "$currentstate" \) ]
-        then
-            # echo "Changing state name:$name currentpresence:$currentpresence currentstate:$currentstate isalive:$isalive newvalue:$newvalue"
-            didsetvalue=$(wget -q -O - "http://$ccu2address:8181/rega.exe?state=dom.GetObject('$variableprefix$name').State($isalive)"|egrep '<state>(false|true)<\/state><\/xml>$')
-        
-            if [ -n "$didsetvalue" ];
+        $debug && echo "Testing state name:$name currentpresence:$currentpresence currentstate:$currentstate isalive:$isalive newvalue:$newvalue"
+
+        if [ $newvalue -ne $currentpresence -a \( $newvalue -eq 1 -o $newvalue -eq $countsaspresent \) -a \( "$isalive" != "$currentstate" \) ]
+        then            
+            personpresentonccu=`getorsetpresenceVariableState $name`
+            
+            $debug && echo "CCU value: $personpresentonccu"
+            if [ "$isalive" != "$personpresentonccu" ]
             then
-                eval currentstate$name=$isalive
-            else
-                eval currentpresence$name=$currentpresence
+                $debug && echo "Changing state on ccu2"
+                
+                didsetvalue=`getorsetpresenceVariableState $name $isalive`
+            
+                if [ "$currentstate" == "$didsetvalue" ]
+                then
+                    eval currentstate$name=$isalive
+                else
+                    eval currentpresence$name=$currentpresence
+                fi
             fi
         fi
     done
     
     sleep $looptime
+    $debug && echo ; echo;
 done
+
+
+
+
