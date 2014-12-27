@@ -42,8 +42,8 @@ guests="d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[4-9][0-9]|192.168.179.[1
 #
 ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56):"  # ignore incomplete and vmware addresses
 looptime=30                                         # how often we check in seconds
-countsaspresent=45                                  # how many loops of looptime until somebody is no longer present
-intialpresencecount=4                               # default counter for each presence variable at start
+maximumcounter=45                                   # how many loops of looptime until somebody is no longer present
+intialcounter=4                                     # default counter for each presence variable at start
 variableprefix="presence.wlan."                     # prefix for the variables on the ccu2
 someonename="any"                                   # variable name if someone is present
 debug=false
@@ -52,7 +52,6 @@ $debug && looptime=5
 #
 # There is nothing below this line that needs to be changed 
 #
-# creating variables on CCU2 if they don't exist and set currentpresence to initialpresense
 #
 RETURN_FAILURE=1
 RETURN_SUCCESS=0
@@ -62,6 +61,16 @@ getorsetpresenceVariableState()
 {
     local name=$1
     local setstate=$2
+    
+    if [ "$setstate" != "" ]
+    then
+        local currentstate=`getorsetpresenceVariableState $name`
+        if [ "$currentstate" == "$setstate" ]
+        then
+            echo -n "$currentstate"
+            return $RETURN_SUCCESS
+        fi
+    fi
     local wgetreturn=$(wget -q -O - "http://$ccu2address:8181/rega.exe?state=dom.GetObject('$variableprefix$name').State($setstate)"|egrep -o '<state>(false|true)</state></xml>$')
 
     if [ "<state>true</state></xml>" == "$wgetreturn" ]
@@ -92,7 +101,7 @@ createPresenceVariableOnCCUIfNeeded()
     fi
     
     local postbody="string v='$variableprefix$name';boolean f=true;string i;foreach(i,dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()){if(v==dom.GetObject(i).Name()){f=false;}};if(f){object s=dom.GetObject(ID_SYSTEM_VARIABLES);object n=dom.CreateObject(OT_VARDP);n.Name(v);s.Add(n.ID());n.ValueType(ivtBinary);n.ValueSubType(2);n.DPInfo(v#' is at home');n.ValueName1('anwesend');n.ValueName0('abwesend');n.State(false);dom.RTUpdate(0);}"
-    postlength=$(echo "$postbody" | wc -c)
+    local postlength=$(echo "$postbody" | wc -c)
     echo -e "POST /tclrega.exe HTTP/1.0\r\nContent-Length: $postlength\r\n\r\n$postbody" |nc "$ccu2address" 80 >/dev/null 2>&1
 
     getorsetpresenceVariableState $name >/dev/null
@@ -106,8 +115,9 @@ createPresenceVariableOnCCUIfNeeded()
 for name in $@ $someonename
 do
     createPresenceVariableOnCCUIfNeeded $name
-    eval currentpresence$name=$intialpresencecount
-    eval currentstate$name=`getorsetpresenceVariableState $name`
+    eval personcounter$name=$intialcounter
+    eval ccupersonstate$name=`getorsetpresenceVariableState $name`
+    eval samestatecounter$name=1
 done
 
 
@@ -116,59 +126,69 @@ done
 #
 while true
 do
-    anyoutput=""
+    anygrepoutput=""
     arpoutput=$(arp -an |egrep -vi "$ignore"|grep 'at')
 
     for name in $@ $someonename
     do
+        $debug && echo "Name: $name"
+        
         if [ $name != $someonename ]
         then
             eval addresstocheck=\$$name
             grepoutput=$(echo "$arpoutput"|egrep -io "$addresstocheck")
         else
-            grepoutput=$anyoutput
+            grepoutput=$anygrepoutput
         fi
         
-        eval currentpresence=\$currentpresence$name
-        eval currentstate=\$currentstate$name
        
         if [ -n "$grepoutput" ];
         then
-            $debug && echo "Found $name in grep"
-            eval currentpresence$name=$countsaspresent
-            anyoutput=$anyoutput','$name
-            isalive="1"
-            booleanisalive="true"
+            $debug && echo "    Found in grepoutput"
+            anygrepoutput=$anygrepoutput','$name
+            newcounter=$maximumcounter
+            newstate="1"
         else
-            $debug && echo "Did not find $name in arp table."
-            eval currentpresence$name=`expr $currentpresence - 1 \| 1 `
-            isalive="0"
-            booleanisalive="false"
+            $debug && echo "    Did not find in grepoutput"
+            eval currentcounter=\$personcounter$name
+            newcounter=`expr $currentcounter - 1 \| 1`
+            newstate="0"
         fi
         
-        eval newvalue=\$currentpresence$name
-        
-        $debug && echo "Testing state name:$name currentpresence:$currentpresence currentstate:$currentstate isalive:$isalive newvalue:$newvalue"
+        $debug && echo "    newcounter:$newcounter newstate:$newstate"
 
-        if [ $newvalue -ne $currentpresence -a \( $newvalue -eq 1 -o $newvalue -eq $countsaspresent \) -a \( "$isalive" != "$currentstate" \) ]
+        if [ $newcounter -eq 1 -o $newcounter -eq $maximumcounter ]     
         then            
-            personpresentonccu=`getorsetpresenceVariableState $name`
-            
-            $debug && echo "CCU value: $personpresentonccu"
-            if [ "$isalive" != "$personpresentonccu" ]
+            eval oldstate=\$ccupersonstate$name
+
+            $debug && echo "    oldstate: $oldstate"
+
+            if [ "$newstate" != "$oldstate" ]
             then
-                $debug && echo "Changing state on ccu2"
+                $debug && echo "    State differs setting on CCU immediately"
                 
-                didsetvalue=`getorsetpresenceVariableState $name $isalive`
-            
-                if [ "$currentstate" == "$didsetvalue" ]
+                eval ccupersonstate$name=`getorsetpresenceVariableState $name $newstate`
+                eval samestatecounter$name=$maximumcounter
+            else
+                $debug && echo "    State same, counting 2nd Variable"
+                
+                eval samestatecounter=\$samestatecounter$name
+                samestatecounter=`expr $samestatecounter - 1 \| 1`
+
+                $debug && echo "    samestatecounter:$samestatecounter" 
+
+                if [ $samestatecounter -eq 1 ]
                 then
-                    eval currentstate$name=$isalive
+                    $debug && echo "    setting state:$newstate on CCU"
+                    
+                    eval ccupersonstate$name=`getorsetpresenceVariableState $name $newstate`
+                    eval samestatecounter$name=$maximumcounter
                 else
-                    eval currentpresence$name=$currentpresence
+                    eval samestatecounter$name=$samestatecounter
                 fi
             fi
         fi
+        eval personcounter$name=$newcounter
     done
     
     sleep $looptime
