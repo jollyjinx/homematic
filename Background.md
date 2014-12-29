@@ -1,7 +1,8 @@
 Hallo Miteinander,
 
-ich stelle hier mal meine Homematic Steuerung vor, vielleicht interessiert es ja den ein oder anderen. Meine Heizungsteuerung ist Anwesenheitsbasiert. D.h. es wird versucht über die spärlichen Informationen zu schliessen ob und wer in welchen Räumen ist. Wenn mein Handy im WLAN eingebucht ist, bin ich wohl im Haus. Wird in einem Raum ein elektrischer Schalter (Licht, Zwischenstecker,...) ein geschaltet, ist wohl jemand im dem Raum. Ist eine Person zu Hause und zeitlich meist in einem Raum (z.B. Morgens in der Küche), dann wird die Heizung entsprechend gesteuert.
+ich stelle hier mal meine Homematic Steuerung vor, vielleicht interessiert es ja den ein oder anderen. Meine Heizungsteuerung ist Anwesenheitsbasiert. D.h. es wird versucht über die spärlichen Informationen zu schliessen ob und wer in welchen Räumen ist. Wenn mein Handy im WLAN eingebucht ist, bin ich wohl im Haus. Wird in einem Raum ein elektrischer Schalter (Licht, Zwischenstecker,...) ein geschaltet, ist wohl jemand im dem Raum. Ist eine Person zu Hause und zeitlich meist in einem Raum (z.B. Morgens in der Küche), dann wird die Heizung entsprechend gesteuert. Sind Gäste im Haus wird das Gästezimmer wärmer gemacht und auch sonst die Temperaturen auf gästefreundliche Niveaus angehoben.
 
+ 
 Die Scripte laufen auf einer unveränderten CCU2 - sowie die Anwesenheitserkennung des WLANs auf einer Fritzbox. Alle meine Scripte finden sich unter https://github.com/jollyjinx/homematic .
 
 
@@ -28,6 +29,7 @@ Anwesenheitsaggregation ([presenceVariableAggregation.hms](presenceVariableAggre
 -------------------------------
 
 Da nicht alle Leute mit einem Gerät im WLAN einbuchen, gibt es noch manuell setzbare Variablen in der CCU2 z.B. presence.manual.guests. Diese werden mit dem script [presenceVariableAggregation.hms](presenceVariableAggregation.hms) mit den anderen Anwesenheitserkennungen zusammengefasst in die Variablen: presence.any, presence.guests, presence.patrick, usw.
+Es gibt noch die Möglichkeit bestimmte personen als Kinder zu definieren, die nur im Haus sind, wenn Erwachsene im Haus sind.
 
 Als Beispiel sind folgende Anwesenheitsvariablen gesetzt:
 		

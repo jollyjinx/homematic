@@ -15,7 +15,7 @@ This script runs on my router (a fritz!box, but should work on any unix based ro
 Presence Aggregation ([presenceVariableAggregation.hms](presenceVariableAggregation.hms))
 -------------------------------
 
-Not all persons have a WLAN device to track their presence in the house. So I have variables that can be manually set, or set via a calendar/timetable.
+Not all persons have a WLAN device to track their presence in the house. So I have variables that can be manually set, or set via a calendar/timetable. Furthermore there is the possibilty to define kids as persons that are at home only if an adult person is at home.
 
 Lets assume the following variables are set:
 		
