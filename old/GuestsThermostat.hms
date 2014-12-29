@@ -2,8 +2,8 @@
 !
 ! This script turns my guests thermostat to auto or off depending on guests presence
 
-string  thermostatname          = "BidCos-RF.KEQ1039045:4"; ! set this to the switch your boiler uses
-string  presencevariablename    = "presence.guests";        ! set this to the variable name you use for detecting someone at home
+string  thermostatname          = "BidCos-RF.KEQ1039045:4"; ! set this to the guests room thermostat
+string  presencevariablename    = "presence.guests";        ! set this to the variable name you use for detecting guests at home
 boolean debug                   = false;                    ! if set, only output what is done, don't do it
 
 !------ Execution
