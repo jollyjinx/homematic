@@ -29,7 +29,8 @@ Anwesenheitsaggregation ([presenceVariableAggregation.hms](presenceVariableAggre
 -------------------------------
 
 Da nicht alle Leute mit einem Gerät im WLAN einbuchen, gibt es noch manuell setzbare Variablen in der CCU2 z.B. presence.manual.guests. Diese werden mit dem script [presenceVariableAggregation.hms](presenceVariableAggregation.hms) mit den anderen Anwesenheitserkennungen zusammengefasst in die Variablen: presence.any, presence.guests, presence.patrick, usw.
-Es gibt noch die Möglichkeit bestimmte personen als Kinder zu definieren, die nur im Haus sind, wenn Erwachsene im Haus sind.
+Es gibt noch die Möglichkeit bestimmte personen als Kinder zu definieren, die nur im Haus sind, wenn Erwachsene im Haus sind. Meine Tochter hat kein Handy und wird über eine Zeittabelle , bzw. einen virtuellen Taster als an/abwesend markiert. Durch die Aggregation ist sie nun nur anwesend, wenn auch ein Erwachsener anwesend ist.
+
 
 Als Beispiel sind folgende Anwesenheitsvariablen gesetzt:
 		
@@ -83,7 +84,11 @@ Das Script [PresenceTriggersTemperature.hms](PresenceTriggersTemperature.hms) we
 
 Das Script setzt dann die Solltemperatur falls die aktuelle Solltemperatur nicht der berechneten übereinstimmt und das Thermostat im Automatikmodus läuft. Man kann also durch Umstellen auf manuellen Thermostatmodus auch die Temperatur manuell verändern.
 
-Das Script habe ich gestern mal zusammengeschrieben, hat aber z.Z. noch die Unzulänglichkeit, dass man die Thermostate erst auf manuell stellen muss, wenn man mal für ein paar Stunden die Automatik nicht greifen lassen will.
+Ergänzt habe ich die Möglichkeit der Termostate automatisch in den AUTO vom MANU Modus nach einer festgelegten Zeit zurückzuspringen. Man kann also mal für ein paar Stunden die Temperatur manuell verändern und danach läuft alles wie gewohnt.
+Die Temperaturtabelle habe ich um die Möglichkeit ergänzt Komfort Temperaturen für Räume und Zeiten mit anzugeben, ganz so wie bei Benutzern. Damit kann man also durch Licht einschalten je nach Raum und Zeit eine andere Komforttemperatur einstellen.
+
+Es gibt nun auch die Möglichkeit die Thermostate bis zur nächsten Umstellung - sei es durch die Zeittabelle der verschiedenen Personen oder Fensteröffnen oder Schalter betätigen - nicht zu verstellen. 
+Allerdings muss man dann alle AUTO Schaltzeiten der Thermostate selbst auch in die Tabelle aufnehmen, weswegen ich diesen Teil optional gemacht habe.
 
 
 Heizungssteuerung Boiler ([TurnBoilerOnAfterVacation.hms](TurnBoilerOnAfterVacation.hms))
