@@ -17,11 +17,13 @@ string  heatingfunctionname     = "Heating";            !. name of the function/
 boolean letuserschangeinbetween = false;                !. If the set temperature changes due to user interaction or other
                                                         !. programming, it will be set the thermostat temperature only when 
                                                         !. switches/doors or the temperature table will change.
-                                                        
+
+integer resetfrommanumodeafter  = 3*3600;               !. resets manual mode thermostats after n-seconds. 0 means keep in manual mode
+
 string  comfortname         = "comforttemperatures";    !. name of the temperature table person that should act as default comfort temperature
 string  defaultroomname     = "anyroom";                !. name of a default room for the person
 string  systemvariablename  = "thermostatrun";          !. optional to have a system variable to read/write last run date and status to.
-integer howoftendowerun     = 5*60;                     !. How often this script runs automatically
+integer howoftendowerun     = 5*60;                     !. How often this script runs automatically in seconds
 boolean debug               = false;                    !. debugging of script - if set no changes will be made
 
 
@@ -359,18 +361,33 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
         {                                                                                                   if(debug){WriteLine("WILL SET as it has changed. lastchange:"#newtime.ToTime()#" lasttime:"#lasttimerun.ToTime());};
             if( systemvariable ) { systemvariablestring = systemvariablestring #room #":"# newtemp # ",";}
             
-            string  thermostatname;
-            foreach(thermostatname,thermostatdevices)
-            {                                                                                               if(debug){WriteLine("\t thermostatname: "#thermostatname);}
-                integer currentmode = dom.GetObject(thermostatname#".CONTROL_MODE").Value();                if(debug){WriteLine("\t Current mode: "#currentmode);}
+            string  thermostatchanneladdress;
+            foreach(thermostatchanneladdress,thermostatdevices)
+            {
+                if( thermostatchanneladdress.Length() )
+                {                                                                                           if(debug){WriteLine("\t thermostatchanneladdress: "#thermostatchanneladdress);}
+                    object  thermostatchannel   = dom.GetObject(thermostatchanneladdress#".CONTROL_MODE");
+                    integer currentmode         = dom.GetObject(thermostatchannel).Value();                 if(debug){WriteLine("\t Current mode: "#currentmode);}
                                                                                                             !.modes:    0 = auto, 1 = manu, 2 = party, 3 = boost
-                if( 0 == currentmode )                                                                      
-                {
-                    real    termostattempcurrent    = dom.GetObject(thermostatname#".SET_TEMPERATURE").Value();         if(debug){WriteLine("\t settemp: "#termostattempcurrent);}
-    
-                    if( newtemp != termostattempcurrent )
-                    {                                                                                       if(debug){WriteLine("Would change Temperature to: "#newtemp);}
-                        if(!debug) { dom.GetObject(thermostatname#".SET_TEMPERATURE").State(newtemp);}
+                    if( 1 == currentmode )
+                    {
+                        string  thermostatdeviceid      = thermostatchannel.Device();
+                        integer thermostattimechanged   = dom.GetObject(thermostatdeviceid).LastDPActionTime().ToInteger(); if(debug){WriteLine("\t manu mode:thermostattimechanged: "#thermostattimechanged.ToTime());}
+
+                        if( thermostattimechanged < (timenow-resetfrommanumodeafter) )
+                        {                                                                                   if(debug){WriteLine("\t Would change Mode to Automatic");}
+                           if(!debug) { dom.GetObject(thermostatchanneladdress#".AUTO_MODE").State(1);}
+                           currentmode = 0;
+                        }
+                    }
+                    if( 0 == currentmode )                                                                      
+                    {
+                        real    termostattempcurrent    = dom.GetObject(thermostatchanneladdress#".SET_TEMPERATURE").Value();         if(debug){WriteLine("\t settemp: "#termostattempcurrent);}
+        
+                        if( newtemp != termostattempcurrent )
+                        {                                                                                   if(debug){WriteLine("Would change Temperature to: "#newtemp);}
+                            if(!debug) { dom.GetObject(thermostatchanneladdress#".SET_TEMPERATURE").State(newtemp);}
+                        }
                     }
                 }
             }
