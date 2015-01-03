@@ -24,10 +24,10 @@ if( !someoneisathome )
 ! check time the switch was last modified
 
 var     boilerswitch       = dom.GetObject(boilerswitchname#".STATE");
-time    lasttimechanged    = boilerswitch.Timestamp();
-time    timenow            = system.Date("%Y-%m-%d %H:%M:%S").ToTime();
+integer lasttimechanged    = boilerswitch.Timestamp().ToInteger();
+integer timenow            = system.Date("%Y-%m-%d %H:%M:%S").ToTime().ToInteger();
 
-integer lastchange      = (timenow-lasttimechanged).ToInteger();                                                if(debug){WriteLine("Seconds since last changing:"#lastchange);}
+integer lastchange      = (timenow-lasttimechanged);                                    if(debug){WriteLine("Seconds since last changing:"#lastchange);}
 
 if( lastchange < (timebetweenchanges*3600) )
 {
@@ -36,9 +36,9 @@ if( lastchange < (timebetweenchanges*3600) )
 }
 
 boolean turnonboiler       = true;
-boolean currentboilerstate = boilerswitch.Value();                                                            if(debug){WriteLine("currentstate:"#currentboilerstate#"\nturnonboiler:"#turnonboiler);}
+boolean currentboilerstate = boilerswitch.Value();                                      if(debug){WriteLine("currentstate:"#currentboilerstate#"\nturnonboiler:"#turnonboiler);}
 
-if( currentboilerstate <> turnonboiler )
-{                                                                                                               if(debug){WriteLine("Would change boiler:"#turnonboiler);}
+if( currentboilerstate != turnonboiler )
+{                                                                                       if(debug){WriteLine("Would change boiler:"#turnonboiler);}
     if(!debug){boilerswitch.State(turnonboiler);}
 }
