@@ -86,6 +86,8 @@ Die ganze Anwesenheitserkennung mache ich nur, damit ich die Solltemperaturen de
 
 Das Script [PresenceTriggersTemperature.hms](PresenceTriggersTemperature.hms) wertet diese Tabelle aus, überprüft die Anwesenheit der Personen im Haus und deren Temperaturwerte für die jeweiligen Räume. Es wertet aus ob ein Fenster oder eine Tür im Raum geöffnet ist oder ob Heizungsrelevante Schalter im Raum aktiv sind. So geht das Script davon aus, dass wenn Licht im Raum brennt, wohl auch jemand anwesend ist.
 
+Falls in einem Raum keine Fenster/Tür sensoren sind, wird eine Fenster-offen Erkennung des Thermostats berücksichtigt. D.h. wenn das Thermostat ein offenes Fenster durch einen Temperatursturz erkennt überschreibt das Script die Fenster-offen-temperatur nicht. Allerdings muss dafür die Fenster-offen-temperatur des Thermostats mit der im Fenster-offen-temperatur variable im Script (openwindowtemp) übereinstimmen.  
+
 Das Script setzt dann die Solltemperatur falls die aktuelle Solltemperatur nicht der berechneten übereinstimmt und das Thermostat im Automatikmodus läuft. Man kann also durch Umstellen auf manuellen Thermostatmodus auch die Temperatur manuell verändern.
 
 Ergänzt habe ich die Möglichkeit der Termostate automatisch in den AUTO vom MANU Modus nach einer festgelegten Zeit zurückzuspringen. Man kann also mal für ein paar Stunden die Temperatur manuell verändern und danach läuft alles wie gewohnt.
