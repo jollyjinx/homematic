@@ -390,7 +390,7 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                     {
                         real    termostattempcurrent    = dom.GetObject(thermostatchanneladdress#".SET_TEMPERATURE").Value();         if(debug){WriteLine("\t settemp: "#termostattempcurrent);}
                         
-                        if( !windowordoorsensorpresent && (termostattempcurrent == openwindowtemp) )
+                        if( (!windowordoorsensorpresent) && (termostattempcurrent == openwindowtemp) )
                         {
                                                                                                             if(debug){WriteLine("\t no window or door present, but thermostat is set to openwindowtemp. Ignoring set temperature");}
                         }
