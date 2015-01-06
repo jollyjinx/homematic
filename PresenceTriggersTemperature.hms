@@ -8,7 +8,10 @@
 !.
 
 real    miniumroomtemp          = 10.0;
-real    openwindowtemp          = 5.0;
+real    openwindowtemp          = 5.0;                  !. needs to be the same as set on the device. That way this script
+                                                        !. can recgonize when the thermostat itself recognises a open window
+                                                        !. even though no windowsensors are present.
+                                                        
 string  heatingfunctionname     = "Heating";            !. name of the function/"Gewerk" heating objects are put in
                                                         !. open doors and windows in a room will switch heating off
                                                         !. light,plugs and other switches in a room will signal present persons
