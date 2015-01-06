@@ -229,10 +229,11 @@ if(true)
 string  roomid;
 foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
 {
-    object  room                = dom.GetObject(roomid);                                                if(debug){WriteLine("\n\nroom:"#room);}
-    boolean openwindowordoor    = false;
-    boolean somebodyispresent   = false;
-    integer somebodychangedtime = -1;
+    object  room                        = dom.GetObject(roomid);                                                if(debug){WriteLine("\n\nroom:"#room);}
+    boolean windowordoorsensorpresent   = false;
+    boolean openwindowordoor            = false;
+    boolean somebodyispresent           = false;
+    integer somebodychangedtime         = -1;
     string  thermostatdevices;
     string  channelid;
     
@@ -272,6 +273,8 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                                 {                                                                       if(debug){WriteLine("\t Datapoint:"#dpname);}
                                     if( 0 == devicehssid.Find("HM-Sec-") )
                                     {                                                                   if(debug){WriteLine("\t WindowOrDoor: state:"#datapoint.Value());}
+                                        windowordoorsensorpresent   = true;
+
                                         if( datapoint.Value() )
                                         {
                                             openwindowordoor = true;                                    
@@ -383,10 +386,17 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                     if( 0 == currentmode )                                                                      
                     {
                         real    termostattempcurrent    = dom.GetObject(thermostatchanneladdress#".SET_TEMPERATURE").Value();         if(debug){WriteLine("\t settemp: "#termostattempcurrent);}
-        
-                        if( newtemp != termostattempcurrent )
-                        {                                                                                   if(debug){WriteLine("Would change Temperature to: "#newtemp);}
-                            if(!debug) { dom.GetObject(thermostatchanneladdress#".SET_TEMPERATURE").State(newtemp);}
+                        
+                        if( !windowordoorsensorpresent && (termostattempcurrent == openwindowtemp) )
+                        {
+                                                                                                            if(debug){WriteLine("\t no window or door present, but thermostat is set to openwindowtemp. Ignoring set temperature");}
+                        }
+                        else
+                        {
+                            if( newtemp != termostattempcurrent )
+                            {                                                                               if(debug){WriteLine("Would change Temperature to: "#newtemp);}
+                                if(!debug) { dom.GetObject(thermostatchanneladdress#".SET_TEMPERATURE").State(newtemp);}
+                            }
                         }
                     }
                 }
