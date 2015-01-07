@@ -272,7 +272,7 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                             {
                                 string  dpname = datapoint.Name();
 
-                                if( -1 != dpname.Find(".STATE") )
+                                if( (-1 != dpname.Find(".STATE")) || ( "HM-RCV-50" == devicehssid ) )
                                 {                                                                       if(debug){WriteLine("\t Datapoint:"#dpname);}
                                     if( 0 == devicehssid.Find("HM-Sec-") )
                                     {                                                                   if(debug){WriteLine("\t WindowOrDoor: state:"#datapoint.Value());}
