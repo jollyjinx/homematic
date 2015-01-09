@@ -44,7 +44,6 @@ string  temperaturetable    = "
     presence.patrick:       hall        0:00,16C                7:30,17C    19:30,18C   22:00,17C   
                             living      0:00,16C                7:30,17C    20:00,18C   22:00,17C   
                             kitchen     0:00,16C                7:30,17C
-                            office      0:00,16C                7:30,20C    19:00,16C             
                             sleeping                            8:00,10C    21:00,15C               
 
     presence.isabel:        hall                    7:00,18.5C  7:30,19.5C  20:00,17C   
