@@ -111,13 +111,13 @@ foreach(personname,allpersons.Split(","))
             ispresent = true;
         }
         
-        var presencevariable = dom.GetObject("presence."#personname);
+        var presencevariable = dom.GetObject(presenceprefix#"."#personname);
         if( ispresent != presencevariable.Value() )
-        {                                                                           if(debug){WriteLine("\tpresence."#personname#" has changed:"#ispresent);}
+        {                                                                           if(debug){WriteLine("\t"#presenceprefix#"."#personname#" has changed:"#ispresent);}
             if(!debug){presencevariable.State(ispresent);}
         }
         else
-        {                                                                           if(debug){WriteLine("\tpresence."#personname#" has not changed:"#ispresent);}
+        {                                                                           if(debug){WriteLine("\t"#presenceprefix#"."#personname#" has not changed:"#ispresent);}
 
         }
     }
