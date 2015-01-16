@@ -40,7 +40,7 @@ guests="d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[4-9][0-9]|192.168.179.[1
 #
 # The next variables are usually nothing you need to change
 #
-ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56):"  # ignore incomplete and vmware addresses
+ignore="<incomplete>|at[\t ]+(00:0c:29|00:50:56|00:1c:42):"  # ignore incomplete, vmware and parallels addresses
 looptime=30                                         # how often we check in seconds
 maximumcounter=45                                   # how many loops of looptime until somebody is no longer present
 intialcounter=4                                     # default counter for each presence variable at start
@@ -155,31 +155,31 @@ do
             newstate="0"
         fi
         
-        $debug && echo "    newcounter:$newcounter newstate:$newstate"
+        $debug && echo "        newcounter:$newcounter newstate:$newstate"
 
         if [ $newcounter -eq 1 -o $newcounter -eq $maximumcounter ]     
         then            
             eval oldstate=\$ccupersonstate$name
-
+            
             $debug && echo "    oldstate: $oldstate"
-
+            
             if [ "$newstate" != "$oldstate" ]
             then
-                $debug && echo "    State differs setting on CCU immediately"
+                $debug && echo "        State differs setting on CCU immediately"
                 
                 eval ccupersonstate$name=`getorsetpresenceVariableState $name $newstate`
                 eval samestatecounter$name=$maximumcounter
             else
-                $debug && echo "    State same, counting 2nd Variable"
+                $debug && echo "        State same, counting 2nd Variable"
                 
                 eval samestatecounter=\$samestatecounter$name
                 samestatecounter=`expr $samestatecounter - 1 \| 1`
-
-                $debug && echo "    samestatecounter:$samestatecounter" 
-
+                
+                $debug && echo "        samestatecounter:$samestatecounter" 
+                
                 if [ $samestatecounter -eq 1 ]
                 then
-                    $debug && echo "    setting state:$newstate on CCU"
+                    $debug && echo "        setting state:$newstate on CCU"
                     
                     eval ccupersonstate$name=`getorsetpresenceVariableState $name $newstate`
                     eval samestatecounter$name=$maximumcounter
