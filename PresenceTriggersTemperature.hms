@@ -52,7 +52,10 @@ string  temperaturetable    = "
                             living                              7:30,18.5C  20:00,17C   
                             kitchen                 7:00,18.5C  7:30,19.5C  20:00,17C               
                             isabel                              7:30,19.5C  19:30,17.5C             
- ";
+                            
+    presence.officeuser:    office      0:00,20C
+
+";
 
 !.
 !. Temperature table format: [presencevariablename]:\s+(\s*[roomname]\s+(HH?:MM,\d+(.\d)?C)+\n)+

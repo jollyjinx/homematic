@@ -44,7 +44,7 @@
 
 string  presenceprefix  = "presence";
 string  anyperson       = "any";
-string  kids            = "isabel";         ! comma seperated list
+string  kids            = "isabel,officeuser";         ! comma seperated list
 boolean debug           = false;
 
 ! 
