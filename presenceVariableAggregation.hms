@@ -39,6 +39,13 @@
 ! she is set at home via a timetable or manually. As she is not at home alone
 ! her aggregated presence is only set when someone else is at home.
 !
+! Those persons, that are depending on the presence of a real person are called 
+! kids here, even though I use it for a my daughter and my office. 
+! When I'm at home and my office computer has a lit screen, then my office is 
+! getting warm.
+! This can also be used for shift workers to have three depending users that have
+! differrent work times an those are present depending on a calender and the presence 
+! of the real user.
 !
 !----- User setable variables
 

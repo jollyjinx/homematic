@@ -60,6 +60,14 @@ string  temperaturetable    = "
 !.
 !. Temperature table format: [presencevariablename]:\s+(\s*[roomname]\s+(HH?:MM,\d+(.\d)?C)+\n)+
 !.
+!. Isabel and officeuser are defined as kids. Those persons, that are depending on the presence of a real
+!. person are called kids in the presenceaggregation script, even though I use it for a my daughter and my officeuser. 
+!. When I'm at home and my office computer has a lit screen, then my office is 
+!. getting warm.
+!. This can also be used for shift workers to have three depending users that have
+!. differrent work times an those are present depending on a calender and the presence 
+!. of the real user.
+
 !--- no user setable parts below this point 
 !.
 string  currentyearmonthday =   system.Date("%F ");
