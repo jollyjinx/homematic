@@ -14,9 +14,10 @@
 # --------------------
 # I'm using variables on the CCU2 for presence detection:
 # 
-# presence.patrick  is set to beeing present when his ethernet address shows up
-# presence.guests   is set when their ethernet addresses show up or devices in a network range
-# presence.any      is set when patrick or guests is set.
+# presence.patrick      is set to beeing present when his ethernet address shows up
+# presence.nightguests  is set when their ethernet addresses show up or devices in a network range
+# presence.dayguests    is set when their ethernet addresses show up or devices in a network range
+# presence.any          is set when patrick or guests is set.
 # 
 # My local network is set up to be in 192.168.0.0 - 192.168.0.255 
 # Stationary devices are in the range 192.168.0.0-192.168.0.139 and 192.168.0.200-192.168.0.255
@@ -33,10 +34,10 @@
 # Variables for you to change:
 #
 ccu2address="hmccu2"                                # ip address or network name of CCU2
-set patrick guests                                  # variables to set on the CCU2 and their presence check
+set patrick nightguests dayguests                   # variables to set on the CCU2 and their presence check
 patrick="80:ea:96:94:5a:66"                         # patricks presence detection device (iphone)
-guests="d0:8d:a6:d7:f1:5a|c9:57:54:b8:ae:c1|192.168.0.1[4-9][0-9]|192.168.179.[1-2]?[0-9]+"
-
+nightguests="192.168.0.1[4-9][0-9]"                         # overnight guests 192.168.140-199
+dayguests="192.168.0.2[2-4][0-9]|192.168.179.[1-2]?[0-9]+"  # dayguests 192.168.0.220-249 , 192.168.179.*
 #
 # The next variables are usually nothing you need to change
 #
