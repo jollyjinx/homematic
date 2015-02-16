@@ -67,14 +67,14 @@ exit;
 
 sub displayisactive
 {
-    my $displayisactive     = `ioreg -r  -c IODisplayWrangler |grep -o '"CurrentPowerState"=4'`;
+    my $displayisactive     = `/usr/sbin/ioreg -r  -c IODisplayWrangler |grep -o '"CurrentPowerState"=4'`;
     return length $displayisactive == 0 ? 0: 1
 }
 
 sub knowndisplaysareconnected
 {
 
-    my $connecteddisplays = `ioreg -r -c IODisplay |grep 'IODisplayEDID'`;
+    my $connecteddisplays = `/usr/sbin/ioreg -r -c IODisplay |grep 'IODisplayEDID'`;
 
     print "\tdisplays:".$connecteddisplays."\n" if $debug>1;
 
@@ -90,11 +90,11 @@ sub knowndisplaysareconnected
 sub knownneighboursonethernet
 {
     my ($ethernetneighbours) = @_;
-    my $arpoutput   = `arp -an`;
+    my $arpoutput   = `/usr/sbin/arp -an`;
 
     if( $arpoutput =~ /$ethernetneighbours/i )
     {
-        my $networksetupoutput  = `networksetup -listnetworkserviceorder`;
+        my $networksetupoutput  = `/usr/sbin/networksetup -listnetworkserviceorder`;
 
         $networksetupoutput =~ s/^(\(\d+\).*?)\n\(/\1\(/gm;
 
@@ -127,7 +127,7 @@ sub sendmacuserstate
 {
     my($macuserstate) = @_;
 
-    my $wgetreturn=`curl "http://$ccu2address:8181/rega.exe?state=dom.GetObject('$hmccuvariable').State($macusedinoffice)" 2>/dev/null` ; # |egrep -o '<state>(false|true)</state></xml>$'`;
+    my $wgetreturn=`/usr/bin/curl "http://$ccu2address:8181/rega.exe?state=dom.GetObject('$hmccuvariable').State($macusedinoffice)" 2>/dev/null` ; # |egrep -o '<state>(false|true)</state></xml>$'`;
     print "Wgetreturn: $wgetreturn\n" if $debug;
 }
 
