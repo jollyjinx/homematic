@@ -91,7 +91,12 @@ else
 
 print "Resulting mac office user state: is ".($macusedinoffice?'':' not ')."active \n" if $debug;
 
-sendmacuserstate($macusedinoffice);
+
+print "Setting variable on ccu....\n" if $debug;
+
+my $setreturn = CCU2::setVariable($ccunetworkaddress,$ccupresencevariable,$macusedinoffice);
+
+print "...done. Variable now set to: ".$setreturn."\n" if $debug;
 
 exit;
 
@@ -155,21 +160,14 @@ sub knownneighboursonethernet
 }
 
 
-sub sendmacuserstate
-{
-    my($macuserstate) = @_;
-
-    my $wgetreturn=`/usr/bin/curl "http://$ccunetworkaddress:8181/rega.exe?state=dom.GetObject('$ccupresencevariable').State($macusedinoffice)" 2>/dev/null` ; # |egrep -o '<state>(false|true)</state></xml>$'`;
-    print "\ncurl return: $wgetreturn\n" if $debug;
-}
-
 package CCU2;
 
-sub getVariable
+ 
+sub setVariable
 {
-    my($ccuaddress,$variablename) = @_;
+    my($ccuaddress,$variablename,$value) = @_;
 
-    my $curlresult = `/usr/bin/curl -D - "http://$ccuaddress:8181/rega.exe?state=dom.GetObject('$variablename').State()" 2>/dev/null`;
+    my $curlresult = `/usr/bin/curl -D - "http://$ccuaddress:8181/rega.exe?state=dom.GetObject('$variablename').State($value)" 2>/dev/null`;
     
     if( $curlresult =~ m#<state>(.*)</state></xml>$# )
     {
@@ -185,7 +183,11 @@ sub getVariable
     return undef
 }
 
-
+sub getVariable
+{
+    my($ccuaddress,$variablename) = @_;
+	return CCU2::setVariable($ccuaddress,$variablename);
+}
 
 sub createBoolVariableIfNeeded()
 {
