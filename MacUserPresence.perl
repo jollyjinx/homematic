@@ -25,6 +25,15 @@
 #               SHELL=/bin/zsh
 #               */3 * * * * /usr/bin/perl /Users/jolly/Binaries/MacUserPresence.perl >/dev/null 2>&1
 #           
+#           6. Create a Visual script on the CCU to run reset the named variable to off state after
+#               15 Minutes as the Mac can't set the varible to off when sleeping or switched off.
+#               That script shoold look like:
+#               Condition If...
+#                   [System State] presence.mac.officeuser when [in use] [trigger when updated]
+#               Activity: Then... [x] stop all current delays before performing the activity (e.g. retriggering).
+#                   [System State] presence.mac.officeuser [delayed] 15 [minutes] [not in use]              
+#
+#
 #           To see what's happening you can call the script with --debug option
 #
 use strict;
@@ -186,7 +195,7 @@ sub setVariable
 sub getVariable
 {
     my($ccuaddress,$variablename) = @_;
-	return CCU2::setVariable($ccuaddress,$variablename);
+    return CCU2::setVariable($ccuaddress,$variablename);
 }
 
 sub createBoolVariableIfNeeded()
@@ -196,7 +205,7 @@ sub createBoolVariableIfNeeded()
     my $value = CCU2::getVariable($ccuaddress,$variablename);
     if( undef == $value )
     {
-        my $postbody="string v='$variablename';boolean f=true;string i;foreach(i,dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()){if(v==dom.GetObject(i).Name()){f=false;}};if(f){object s=dom.GetObject(ID_SYSTEM_VARIABLES);object n=dom.CreateObject(OT_VARDP);n.Name(v);s.Add(n.ID());n.ValueType(ivtBinary);n.ValueSubType(2);n.DPInfo(v#' is ');n.ValueName1('true');n.ValueName0('false');n.State(false);dom.RTUpdate(0);}";
+        my $postbody="string v='$variablename';boolean f=true;string i;foreach(i,dom.GetObject(ID_SYSTEM_VARIABLES).EnumUsedIDs()){if(v==dom.GetObject(i).Name()){f=false;}};if(f){object s=dom.GetObject(ID_SYSTEM_VARIABLES);object n=dom.CreateObject(OT_VARDP);n.Name(v);s.Add(n.ID());n.ValueType(ivtBinary);n.ValueSubType(2);n.DPInfo(v#' is ');n.ValueName1('in use');n.ValueName0('not in use');n.State(false);dom.RTUpdate(0);}";
         
         system('/usr/bin/curl','--data',$postbody,"http://$ccuaddress/tclrega.exe","2>/dev/nulL") || die "Cant execute curl";   
         return CCU2::getVariable($ccuaddress,$variablename);
