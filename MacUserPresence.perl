@@ -18,7 +18,7 @@
 #               networks will be ignored ) you need to set the $ethernetneighbours and 
 #               $knowndisplays accordingly. 
 #               Find out your ethernet partners via the 'arp -an' command line
-#               Find out your displays edids with 'ioreg -lw0 |grep -A 15 -B 5 -i IODisplayEDID' 
+#               Find out your displays edids with '/usr/sbin/ioreg -r -c IODisplay' 
 #           4. Start the script in the command line with the $debug variable to 1 to see if it
 #               works.
 #           5. Add the script to your crontab with an entry like:
@@ -52,7 +52,7 @@ my $knowndisplays       = undef;            # will be checked if set
 #my $ethernetneighbours  = "(5C:F9:38:C5:98:C1|00:1A:22:04:9D:C4|3C:77:E6:61:DC:9E|00:1B:63:A2:88:F9|00:1C:B3:7A:35:BD|C8:02:10:05:D6:04|C0:25:06:77:36:31)";   # bgb
 #
 #
-#   examples for display edids. Find out what to set with  'ioreg -lw0 |grep -A 15 -B 5 -i IODisplayEDID'
+#   examples for display edids. Find out what to set with  '/usr/sbin/ioreg -r -c IODisplay'
 #my $knowndisplays       = "(00ffffffffffff0006102192d96201020e1201038040287828fe85a3574a9c2513505400000001010101010101010101010101010101bc1b00a0502017303020360081912100001ab06800a0a0402e603020360081912100001a000000ff004359383134303056584d500a00000000fc0043696e656d6120484|00ffffffffffff0006101e926c00fe020e0f010380311f782ecfb5a355499925105054000000d1000101010101010101010101010101253c80a070b0234030203600ef361100001a000000fc0043696e656d6120484420446973000000fc00706c61790a0000000000000000000000000000000000000000000)";
 #
 
@@ -113,7 +113,7 @@ exit;
 
 sub displayisactive
 {
-    my $displayisactive     = `/usr/sbin/ioreg -r  -c IODisplayWrangler |grep -o '"CurrentPowerState"=4'`;
+    my $displayisactive     = `/usr/sbin/ioreg -r -c IODisplayWrangler |grep -o '"CurrentPowerState"=4'`;
     return length $displayisactive == 0 ? 0: 1
 }
 
