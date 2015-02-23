@@ -1,54 +1,121 @@
 ! https://github.com/jollyjinx/homematic/blob/master/ThermostatModeSwitch.hms
 !
-! Script changes all Thermostats to either auto or manual mode.
+! Script changes all Thermostats to either auto or manual mode depending on the state
+! of a single switch
+!
+! If in automode the script also resets the thermostats to automode after some time (resettoautomodedelay) 
+! 
+! As the Thermostats do not rember the time they have switched their mode this script uses a
+! variable to store the first time the thermostat had changed mode, this variable is created if not exists.
 !
 !----- User setable variables
 
 
-string  thermostatmodeswitch    = "BidCos-RF.KEQ0768205:4"; ! switch that decides if thermostats should be manual (off) or in auto mode (on)
-boolean debug                   = false;                    ! if set, output what is done
+string  thermostatmodeswitch    = "BidCos-RF.KEQ0768205:4";              ! switch that decides if thermostats should be manual (off) or in auto mode (on)
+integer resettoautomodedelay    = 180;                                   ! time in minutes after which to reset the thermostats to the given mode - 0 for off
+string  systemvariablename      = "thermostat.automode.store";
+boolean debug                   = false;                                  ! if set, output what is done
 
 !------ Execution
 
-var     modeswitch              = dom.GetObject(thermostatmodeswitch#".STATE");
-boolean automode                = modeswitch.Value();                                                           if(debug){WriteLine("modeswitch State:"#automode);}
+boolean automode                = dom.GetObject(thermostatmodeswitch#".STATE").Value();                     if(debug){WriteLine("modeswitch State:"#automode);}
 
+object  systemvariable          = dom.GetObject(systemvariablename);
+if( !systemvariable )
+{                                                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
+    object systemVariables  =dom.GetObject(ID_SYSTEM_VARIABLES);
+    systemvariable=dom.CreateObject(OT_VARDP);
+    systemvariable.Name(systemvariablename);
+    systemVariables.Add(systemvariable.ID());
+    systemvariable.ValueType(ivtString);                                                                    !. dokumentation says: boolean = 1; integer 2; real 3 ;time 5; 4 string;
+    systemvariable.ValueSubType(istChar8859);
+    systemvariable.DPInfo("stores thermostat modeswitches");
+    systemvariable.State("");
+    dom.RTUpdate(0);
+}
+
+integer timenow             = system.Date("%F %X").ToTime().ToInteger();                                    if(debug){WriteLine("Timenow:"#timenow);}
+string  objectsandtimes     = systemvariable.Value();                                                       if(debug){WriteLine("objectsandtimes:"#objectsandtimes);}
+string  newobjectsandtimes  = "";                                                                      
 
 string  deviceid;
 foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs()) 
 {
-    var device  = dom.GetObject(deviceid);                                                                      if(debug){WriteLine("Device:"#device#" (id:"#deviceid#")");}
+    var device  = dom.GetObject(deviceid);                                                                  if(debug){WriteLine("Device:"#device#" (id:"#deviceid#")");}
                                                     
     if( "HM-CC-RT-DN" == device.HSSID() )
     {   
         string channelid;                                                                                                           
         foreach(channelid,device.Channels().EnumUsedIDs())
         {
-            var channel = dom.GetObject(channelid);                                                             if(debug){WriteLine("\t Channel:"#channel#" (id:"#channelid#")");}
+            var channel = dom.GetObject(channelid);                                                         if(debug){WriteLine("\t Channel:"#channel#" (id:"#channelid#")");}
             
             if( "CLIMATECONTROL_RT_TRANSCEIVER" == channel.HSSID() )
             {
                 var     interface   =   dom.GetObject(channel.Interface());
-                var     datapoint   =   interface#"."#channel.Address();                                        if(debug){WriteLine("\t Datapoint:"#datapoint);}
-                integer currentstate=  dom.GetObject(datapoint#".CONTROL_MODE").Value();                        if(debug){WriteLine("\t State before:"#currentstate);}
+                var     datapoint   =   interface#"."#channel.Address();                                    if(debug){WriteLine("\t Datapoint:"#datapoint);}
+                integer currentstate=  dom.GetObject(datapoint#".CONTROL_MODE").Value();                    if(debug){WriteLine("\t State before:"#currentstate);}
                 
-                if( automode )
+                !.modes:    0 = auto, 1 = manu, 2 = party, 3 = boost
+                boolean thermostatinautomode = false;
+                if( 0==currentstate)
                 {
-                    if( 0!=currentstate)
-                    {
-                        dom.GetObject(datapoint#".AUTO_MODE").State(1);                                         if(debug){WriteLine("\t Setting to auto mode");}
-                    }
+                    thermostatinautomode = true;
                 }
-                else 
-                {
-                    if( 1!=currentstate )
+                
+                if( automode != thermostatinautomode )                                                             
+                {                                                                                           if(debug){WriteLine("\t Device not in suggested mode");}
+                    if( automode && (resettoautomodedelay>0) )
                     {
-                        dom.GetObject(datapoint#".MANU_MODE").State(0.0);                                       if(debug){WriteLine("\t Setting to manual mode");}
+                        boolean hasbeenfound    = false;
+                        
+                        string objectandtime;                        
+                        foreach( objectandtime, objectsandtimes.Split(",") )
+                        {                                                                                   if(debug){WriteLine("\t found in systemvariable:"#objectandtime);}
+                            if( (!hasbeenfound) && (objectandtime.Length()>0) )
+                            {
+                                string  storeddevice = objectandtime.StrValueByIndex(":",0);                if(debug){WriteLine("\t storeddevice in systemvariable:"#storeddevice#"\t device:"#device);}
+                                
+                                if( device.Name() == storeddevice )
+                                {                                                                           if(debug){WriteLine("\t Device found equals one in systemvariable:"#objectandtime);}
+                                    integer timechanged = objectandtime.StrValueByIndex(":",1).ToInteger();
+                                
+                                    if( timechanged < timenow )
+                                    {                                                                       if(debug){WriteLine("\t Setting back to auto mode.");}
+                                        dom.GetObject(datapoint#".AUTO_MODE").State(1);
+                                    }
+                                    else
+                                    {
+                                        newobjectsandtimes = newobjectsandtimes # "," # objectandtime;
+                                    }
+                                    hasbeenfound = true;
+                                }
+                            }
+                        }
+                        if( !hasbeenfound )
+                        {                                                                                  
+                            newobjectsandtimes = newobjectsandtimes # "," # device # ":" # (timenow + (resettoautomodedelay*60 ));  if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
+                        }
                     }
+                    else
+                    { 
+                        if( 0!=currentstate)
+                        {
+                            dom.GetObject(datapoint#".AUTO_MODE").State(1);                                 if(debug){WriteLine("\t Setting to auto mode");}
+                        }
+                    
+                        if( 1!=currentstate )
+                        {
+                            dom.GetObject(datapoint#".MANU_MODE").State(0.0);                               if(debug){WriteLine("\t Setting to manual mode");}
+                        }
+                    }
+                                                                                                            if(debug){WriteLine("\t State after:"#dom.GetObject(datapoint#".CONTROL_MODE").Value());}
                 }
-                                                                                                                if(debug){WriteLine("\t State after:"#dom.GetObject(datapoint#".CONTROL_MODE").Value());}
             }
         }
     }
-}   
+}
+    if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
+
+systemvariable.State(newobjectsandtimes);
 
