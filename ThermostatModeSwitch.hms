@@ -1,7 +1,6 @@
 ! https://github.com/jollyjinx/homematic/blob/master/ThermostatModeSwitch.hms
 !
-! Script changes all Thermostats to either auto or manual mode depending on the state
-! of a single switch
+! Script changes all Thermostats to either auto or manual mode depending on the automode variable
 !
 ! If in automode the script also resets the thermostats to automode after some time (resettoautomodedelay) 
 ! 
@@ -10,17 +9,21 @@
 !
 !----- User setable variables
 
+boolean automode                = true;                                 !.Set to true to set all Thermostats to automode, if false all thermostats
+                                                                        !.will be set to manu mode and off.
+                                                                        !.I actually use the state of a hardware switch to set automode  like
+                                                                        !. dom.GetObject("BidCos-RF.KEQ0768205:4.STATE").Value();
 
-string  thermostatmodeswitch    = "BidCos-RF.KEQ0768205:4";              ! switch that decides if thermostats should be manual (off) or in auto mode (on)
-integer resettoautomodedelay    = 180;                                   ! time in minutes after which to reset the thermostats to the given mode - 0 for off
-string  systemvariablename      = "thermostat.automode.store";
-boolean debug                   = false;                                  ! if set, output what is done
+integer resettoautomodedelay    = 180;                                  !.time in minutes after which to reset the thermostats to the given mode - 0 for off
+string  systemvariablename      = "thermostat.automode.store";          !.systemvariable that stores the state when to switch thermostats back to auto
+                                                                        !.will be created if needed
+boolean debug                   = false;                                !.if set, output what is done
 
-!------ Execution
-
-boolean automode                = dom.GetObject(thermostatmodeswitch#".STATE").Value();                     if(debug){WriteLine("modeswitch State:"#automode);}
-
-object  systemvariable          = dom.GetObject(systemvariablename);
+!
+!------ Execution nothing needs to be changed below this line -----------
+!
+                                                                                                            if(debug){WriteLine("Automode:"#automode);}
+object  systemvariable          = dom.GetObject(systemvariablename);    
 if( !systemvariable )
 {                                                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
     object systemVariables  =dom.GetObject(ID_SYSTEM_VARIABLES);
