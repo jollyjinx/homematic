@@ -1,0 +1,19 @@
+string  systemvariablename      = "testvariable";
+boolean debug                   = false;                                    ! if set, output what is done
+
+
+object  systemvariable          = dom.GetObject(systemvariablename);
+if( !systemvariable )
+{                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
+    object systemVariables  =dom.GetObject(ID_SYSTEM_VARIABLES);
+    systemvariable=dom.CreateObject(OT_VARDP);
+    systemvariable.Name(systemvariablename);
+    systemVariables.Add(systemvariable.ID());
+    systemvariable.ValueType(ivtString);                                    !. dokumentation says: boolean = 1; integer 2; real 3 ;time 5; 4 string;
+    systemvariable.ValueSubType(istChar8859);
+    systemvariable.DPInfo("stores thermostat modeswitches");
+    systemvariable.State("testvalue");
+    dom.RTUpdate(0);
+}
+
+string  value     = systemvariable.Value();                                 if(debug){WriteLine("value:"#value);}
