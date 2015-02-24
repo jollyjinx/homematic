@@ -4,8 +4,8 @@
 !
 ! If in automode the script also resets the thermostats to automode after some time (resettoautomodedelay) 
 ! 
-! As the Thermostats do not rember the time they have switched their mode this script uses a
-! variable to store the first time the thermostat had changed mode, this variable is created if not exists.
+! As the Thermostats do not rember the time they have switched their mode, this script uses a
+! systemvariable to store the first time the thermostat had changed mode. This variable is created if does not exist.
 !
 !----- User setable variables
 
@@ -23,7 +23,9 @@ boolean debug                   = false;                                !.if set
 !------ Execution nothing needs to be changed below this line -----------
 !
                                                                                                             if(debug){WriteLine("Automode:"#automode);}
-object  systemvariable          = dom.GetObject(systemvariablename);    
+object  systemvariable          = dom.GetObject(systemvariablename);
+
+
 if( !systemvariable )
 {                                                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
     object systemVariables  =dom.GetObject(ID_SYSTEM_VARIABLES);
@@ -37,9 +39,27 @@ if( !systemvariable )
     dom.RTUpdate(0);
 }
 
-integer timenow             = system.Date("%F %X").ToTime().ToInteger();                                    if(debug){WriteLine("Timenow:"#timenow);}
-string  objectsandtimes     = systemvariable.Value();                                                       if(debug){WriteLine("objectsandtimes:"#objectsandtimes);}
-string  newobjectsandtimes  = "";                                                                      
+integer timenow                 = system.Date("%F %X").ToTime().ToInteger();                                if(debug){WriteLine("Timenow:"#timenow);}
+integer timetoswitchback        = (timenow + (resettoautomodedelay*60 ));                                   if(debug){WriteLine("timetoswitchback:"#timetoswitchback);}
+string  timetoswitchbackstring  = timetoswitchback #":"#(timetoswitchback.ToTime().ToString().StrValueByIndex(" ",1));  if(debug){WriteLine("timetoswitchbackstring:"#timetoswitchbackstring);}
+string  systemvariablestring    = systemvariable.Value();                                                   if(debug){WriteLine("systemvariablestring:"#systemvariablestring);}
+string  objectsandtimes         = systemvariablestring.StrValueByIndex("#",1);                              if(debug){WriteLine("objectsandtimes:"#objectsandtimes);}
+string  newobjectsandtimes      = "automode:"#automode.ToString()#"#";
+
+string  lasttimerunstring   = (systemvariablestring.StrValueByIndex("#",0)).StrValueByIndex(":",1);         if(debug){WriteLine("lasttimerunstring:"#lasttimerunstring);}
+boolean lasttimerunmode     = automode;
+
+if( "true" == lasttimerunstring )
+{
+    lasttimerunmode = true;
+}
+else
+{
+    if( "false" == lasttimerunstring )
+    {
+        lasttimerunmode = false;
+    }
+}
 
 string  deviceid;
 foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs()) 
@@ -66,7 +86,7 @@ foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs())
                     thermostatinautomode = true;
                 }
                 
-                if( automode != thermostatinautomode )                                                             
+                if( (lasttimerunmode == automode) && (automode != thermostatinautomode) )
                 {                                                                                           if(debug){WriteLine("\t Device not in suggested mode");}
                     if( automode && (resettoautomodedelay>0) )
                     {
@@ -97,7 +117,7 @@ foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs())
                         }
                         if( !hasbeenfound )
                         {                                                                                  
-                            newobjectsandtimes = newobjectsandtimes # "," # device # ":" # (timenow + (resettoautomodedelay*60 ));  if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
+                            newobjectsandtimes = newobjectsandtimes # "," # device # ":" # timetoswitchbackstring;  if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
                         }
                     }
                     else
