@@ -4,8 +4,8 @@
 !
 ! If in automode the script also resets the thermostats to automode after some time (resettoautomodedelay) 
 ! 
-! As the Thermostats do not rember the time they have switched their mode, this script uses a
-! systemvariable to store the first time the thermostat had changed mode. This variable is created if does not exist.
+! As the Thermostats do not rember the time they have switched their mode this script uses a
+! variable to store the first time the thermostat had changed mode, this variable is created if not exists.
 !
 !----- User setable variables
 
@@ -23,9 +23,7 @@ boolean debug                   = false;                                !.if set
 !------ Execution nothing needs to be changed below this line -----------
 !
                                                                                                             if(debug){WriteLine("Automode:"#automode);}
-object  systemvariable          = dom.GetObject(systemvariablename);
-
-
+object  systemvariable          = dom.GetObject(systemvariablename);    
 if( !systemvariable )
 {                                                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
     object systemVariables  =dom.GetObject(ID_SYSTEM_VARIABLES);
@@ -59,6 +57,11 @@ else
     {
         lasttimerunmode = false;
     }
+}																											if(debug){WriteLine("lasttimerunmode:"#lasttimerunmode);}
+
+if(lasttimerunmode != automode)
+{
+	resettoautomodedelay = 0;
 }
 
 string  deviceid;
@@ -86,7 +89,7 @@ foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs())
                     thermostatinautomode = true;
                 }
                 
-                if( (lasttimerunmode == automode) && (automode != thermostatinautomode) )
+                if( automode != thermostatinautomode )
                 {                                                                                           if(debug){WriteLine("\t Device not in suggested mode");}
                     if( automode && (resettoautomodedelay>0) )
                     {
@@ -138,14 +141,8 @@ foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs())
         }
     }
 }
-
-if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
-
-
+    if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
 if(systemvariablestring!=newobjectsandtimes)
 {
-    systemvariable.State(newobjectsandtimes);
+systemvariable.State(newobjectsandtimes);
 }
-
-
-
