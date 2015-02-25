@@ -25,7 +25,9 @@ integer resetfrommanumodeafter  = 3*3600;               !. resets manual mode th
 
 string  comfortname         = "comforttemperatures";    !. name of the temperature table person that should act as default comfort temperature
 string  defaultroomname     = "anyroom";                !. name of a default room for the person
-string  systemvariablename  = "thermostatrun";          !. optional to have a system variable to read/write last run date and status to.
+string  systemvariablename  = "thermostatrun";          !. name of a system variable (string type) used to store the last used thermostat 
+														!. set temperature. if set to "" it's not used . If the variable does not exist
+														!. it is created.
 integer howoftendowerun     = 5*60;                     !. How often this script runs automatically in seconds
 boolean debug               = false;                    !. debugging of script - if set no changes will be made
 
@@ -81,15 +83,35 @@ integer secondsthisday      =   timenow-timedaystart;
 integer lasttimerun         =   timenow-howoftendowerun;
 
 !.
-!. In case you have the system variable 
-var     systemvariable      =   dom.GetObject(systemvariablename);
-string  systemvariablestring;
+!. In case you have the system variable
+object     systemvariable	=   dom.GetObject(systemvariablename);
 
-if( letuserschangeinbetween && systemvariable )
+if( (systemvariablename.Length()>0) && (!systemvariable) )
+{                                                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
+    object systemVariables  =dom.GetObject(ID_SYSTEM_VARIABLES);
+    systemvariable=dom.CreateObject(OT_VARDP);
+    systemvariable.Name(systemvariablename);
+    systemVariables.Add(systemvariable.ID());
+    systemvariable.ValueType(ivtString);                                                                    !. dokumentation says: boolean = 1; integer 2; real 3 ;time 5; 4 string;
+    systemvariable.ValueSubType(istChar8859);
+    systemvariable.DPInfo("current thermostat settings");
+    systemvariable.State("");
+    dom.RTUpdate(0);
+}
+
+string  oldsystemvariablestring = "";
+string	newsystemvariablestring = "";
+
+if( systemvariable )
 {
-    systemvariablestring    =   systemvariable.Variable().ToString();
-    lasttimerun             =   systemvariablestring.StrValueByIndex("#",0).ToTime().ToInteger();
-    systemvariablestring    =   timenow.ToTime().ToString()#"#";
+    string 	laststring	=   systemvariable.Variable().ToString();
+    integer	offset		=	laststring.Find("#");
+    
+    if( -1 != offset )
+    {
+    	lasttimerun				=   laststring.StrValueByIndex("#",0).ToTime().ToInteger();
+    	oldsystemvariablestring	=	laststring.Substr(offset+1,laststring.Length()-(offset+1));
+    }
 }
                                                                                                         if(debug){WriteLine("timenow:"#timenow#"\t secondsthisday:"#secondsthisday#"\tlasttimerun"#lasttimerun.ToTime());}
 
@@ -381,7 +403,7 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
         if(     (!letuserschangeinbetween)
             ||  (newtime > (lasttimerun-howoftendowerun)) )
         {                                                                                                   if(debug){WriteLine("WILL SET as it has changed. lastchange:"#newtime.ToTime()#" lasttime:"#lasttimerun.ToTime());};
-            if( systemvariable ) { systemvariablestring = systemvariablestring #room #":"# newtemp # ",";}
+           	newsystemvariablestring = newsystemvariablestring #room #":"# newtemp # ",";
             
             string  thermostatchanneladdress;
             foreach(thermostatchanneladdress,thermostatdevices)
@@ -428,10 +450,9 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
     }
 } 
 
-if( systemvariable && (!debug) )
-{
-    systemvariable.Variable(systemvariablestring);
+
+if( systemvariable && (oldsystemvariablestring != newsystemvariablestring) )
+{																										if(debug){WriteLine("systemvariable changed\nfrom:\t" # oldsystemvariablestring # "\nto:\t:" # newsystemvariablestring);}
+	if(!debug){systemvariable.State(system.Date("%F %X") #"#"# newsystemvariablestring);}
 }
-
-
 
