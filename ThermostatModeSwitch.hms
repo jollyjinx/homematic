@@ -138,7 +138,14 @@ foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs())
         }
     }
 }
-    if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
 
-systemvariable.State(newobjectsandtimes);
+if(debug){WriteLine("newobjectsandtimes now:"#newobjectsandtimes);}
+
+
+if(systemvariablestring!=newobjectsandtimes)
+{
+    systemvariable.State(newobjectsandtimes);
+}
+
+
 
