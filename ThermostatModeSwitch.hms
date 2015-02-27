@@ -9,7 +9,7 @@
 !
 !----- User setable variables
 
-boolean automode                = true;                                 !.Set to true to set all Thermostats to automode, if false all thermostats
+boolean automode                = dom.GetObject("thermostats.automode").Value();                                 !.Set to true to set all Thermostats to automode, if false all thermostats
                                                                         !.will be set to manu mode and off.
                                                                         !.I actually use the state of a hardware switch to set automode  like
                                                                         !. dom.GetObject("BidCos-RF.KEQ0768205:4.STATE").Value();
