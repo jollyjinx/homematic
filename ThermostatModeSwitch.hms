@@ -45,7 +45,7 @@ string  objectsandtimes         = systemvariablestring.StrValueByIndex("#",1);  
 string  newobjectsandtimes      = "automode:"#automode.ToString()#"#";
 
 string  lasttimerunstring   = (systemvariablestring.StrValueByIndex("#",0)).StrValueByIndex(":",1);         if(debug){WriteLine("lasttimerunstring:"#lasttimerunstring);}
-boolean lasttimerunmode     = automode;
+boolean lasttimerunmode     = !automode;
 
 if( "true" == lasttimerunstring )
 {
