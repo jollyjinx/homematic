@@ -1,0 +1,66 @@
+!! https://github.com/jollyjinx/homematic/blob/master/WaterSensorProwl.hms
+!! 
+!! This scrips creates a prowl message when watersensors detect water or humitidy
+!!
+!! The script uses the 'prowlapikey'  system variable to read out the prowl api key
+!! the variable will be created if it does not exist when you start the script the 
+!! first time and the default value will be stored in there.
+!!
+!! Change the defaultprowlapikey before you start the script the first time in 
+!! case you don't have the prowlapikey variable yet.
+
+
+boolean debug               = true;
+string  systemvariablename  = "prowlapikey";
+string  defaultprowlapikey  = "01234567890abcdef01234567890abcdef012345";
+
+
+
+object     systemvariable   =   dom.GetObject(systemvariablename);
+
+if( (systemvariablename.Length()>0) && (!systemvariable) )
+{                                                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
+    object systemVariables  =dom.GetObject(ID_SYSTEM_VARIABLES);
+    systemvariable=dom.CreateObject(OT_VARDP);
+    systemvariable.Name(systemvariablename);
+    systemVariables.Add(systemvariable.ID());
+    systemvariable.ValueType(ivtString);                                                                    !. dokumentation says: boolean = 1; integer 2; real 3 ;time 5; 4 string;
+    systemvariable.ValueSubType(istChar8859);
+    systemvariable.DPInfo("Prowl API key");
+    systemvariable.State(defaultprowlapikey);
+    dom.RTUpdate(0);
+}
+
+string  prowlapikey =   systemvariable.Variable().ToString();
+
+
+string  deviceid;
+foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs()) 
+{
+    var device  = dom.GetObject(deviceid);                                                                  if(debug){WriteLine("Device:"#device#" (id:"#deviceid#")");}
+                                                    
+    if( "HM-Sec-WDS-2" == device.HSSID() )
+    {   
+        string channelid;                                                                                                           
+        foreach(channelid,device.Channels().EnumUsedIDs())
+        {
+            var channel = dom.GetObject(channelid);                                                         if(debug){WriteLine("\t Channel:"#channel#" (id:"#channelid#")");}
+            
+            if( "WATERDETECTIONSENSOR" == channel.HSSID() )
+            {
+                var     interface   =   dom.GetObject(channel.Interface());
+                var     datapoint   =   interface#"."#channel.Address();                                    if(debug){WriteLine("\t Datapoint:"#datapoint);}
+                integer currentstate=  dom.GetObject(datapoint#".STATE").Value();                           if(debug){WriteLine("\t State:"#currentstate);}
+                
+                if( 0 != currentstate )
+                {
+                    !! water deteced, send mail
+                    
+                    system.Exec("wget -q -O /dev/null --no-check-certificate 'https://prowlapp.com/publicapi/add?apikey="#prowlapikey#"&application=HomeMatic&description=WASSERALARM:%20"#channel#"' &");
+                }
+            }
+        }
+    }
+}
+
+
