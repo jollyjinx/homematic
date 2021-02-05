@@ -7,27 +7,27 @@
 ! If there are openings in the 'Heating' function/Gewerk so not to heat
 !.
 
-real    miniumroomtemp          = 10.0;
+real    miniumroomtemp          = 14.0;
 real    openwindowtemp          = 5.0;                  !. needs to be the same as set on the device. That way this script
                                                         !. can recgonize when the thermostat itself recognises a open window
                                                         !. even though no windowsensors are present.
-                                                        
+
 string  heatingfunctionname     = "Heating";            !. name of the function/"Gewerk" heating objects are put in
                                                         !. open doors and windows in a room will switch heating off
                                                         !. light,plugs and other switches in a room will signal present persons
                                                         !. and will change to comfort temperature if lower
-                                                        
+
 boolean letuserschangeinbetween = false;                !. If the set temperature changes due to user interaction or other
-                                                        !. programming, it will be set the thermostat temperature only when 
+                                                        !. programming, it will be set the thermostat temperature only when
                                                         !. switches/doors or the temperature table will change.
 
 integer resetfrommanumodeafter  = 3*3600;               !. resets manual mode thermostats after n-seconds. 0 means keep in manual mode
 
 string  comfortname         = "comforttemperatures";    !. name of the temperature table person that should act as default comfort temperature
 string  defaultroomname     = "anyroom";                !. name of a default room for the person
-string  systemvariablename  = "thermostatrun";          !. name of a system variable (string type) used to store the last used thermostat 
-														!. set temperature. if set to "" it's not used . If the variable does not exist
-														!. it is created.
+string  systemvariablename  = "thermostatrun";          !. name of a system variable (string type) used to store the last used thermostat
+                                                        !. set temperature. if set to "" it's not used . If the variable does not exist
+                                                        !. it is created.
 integer howoftendowerun     = 5*60;                     !. How often this script runs automatically in seconds
 boolean debug               = false;                    !. debugging of script - if set no changes will be made
 
@@ -35,31 +35,31 @@ boolean debug               = false;                    !. debugging of script -
 string  temperaturetable    = "
 
     comforttemperatures:    anyroom     0:00,19C
-                            living                              8:00,18.5C  16:00,19.0C 22:00,18C
-                            office      0:00,20C
+                            Wohnzimmer                              8:00,18.5C  16:00,19.0C 22:00,18C
+                            Büro        0:00,20C
 
-    presence.any:           hall        0:00,16C                7:30,17C    19:30,18C   22:00,17C   
-                            living      0:00,16C                7:30,17C    20:00,18C   22:00,17C   
-                            kitchen     0:00,16C                7:30,17C    20:00,17C
-                            office      0:00,16C
+    presence.any:           Flur        0:00,16C                7:30,17C    19:30,18C   22:00,17C
+                            Wohnzimmer  0:00,16C                7:30,17C    20:00,18C   22:00,17C
+                            Küche       0:00,16C                7:30,17C    20:00,17C
+                            Wohnzimmer  0:00,16C
 
-    presence.dayguests:     hall                   6:00,18.0C   7:30,19.5C  19:30,20C   22:30,17C   
-                            living                              7:30,19C    19:30,20C   22:30,17C   
-                            kitchen                6:00,18.0C   7:30,20C    20:30,17C               
-                            
-    presence.nightguests:   hall                   6:00,18.0C   7:30,19.5C  19:30,20C   22:30,17C   
-                            living                              7:30,19C    19:30,20C   22:30,17C   
-                            kitchen                6:00,18.0C   7:30,20C    20:30,17C               
-                            guests      0:00,17C                9:00,14C    19:00,16C   21:00,17.5C             
+    presence.dayguests:     Flur                    6:00,18.0C   7:30,19.5C  11:30,20C   22:30,17C
+                            Wohnzimmer                           7:30,19C    11:30,20C   22:30,17C
+                            Küche                   6:00,18.0C   7:30,20C    21:30,17C
 
-    presence.patrick:       sleeping                            8:00,10C    21:00,15C               
+    presence.nightguests:   Flur                    6:00,18.0C   7:30,19.5C  15:00,20C   22:30,17C
+                            Wohnzimmer                           7:30,19C    19:30,20C   22:30,17C
+                            Küche                   6:00,18.0C   7:30,20.5C  21:30,17C
+                            Gästezimmer     0:00,17C             9:00,16C    19:00,17C   21:00,19.0C
 
-    presence.isabel:        hall                    7:00,18.5C  7:30,19.5C  20:00,17C   
-                            living                              7:30,18.5C  20:00,17C   
-                            kitchen                 7:00,18.5C  7:30,19.5C  20:00,17C               
-                            isabel                              7:30,19.5C  19:30,17.5C             
-                            
-    presence.officeuser:    office      0:00,20C
+    presence.patrick:       Schlafzimmer    0:00,18C
+
+    presence.isabel:        Flur                    7:00,18.5C  7:00,19.5C  20:00,17C
+                            Wohnzimmer              7:00,18.5C  20:00,17C
+                            Küche                   7:00,20.5C  20:00,17C
+                            Isabel                  7:00,20.5C  20:30,17.5C
+
+    presence.officeuser:    Büro      0:00,20C
 
 ";
 
@@ -67,14 +67,14 @@ string  temperaturetable    = "
 !. Temperature table format: [presencevariablename]:\s+(\s*[roomname]\s+(HH?:MM,\d+(.\d)?C)+\n)+
 !.
 !. Isabel and officeuser are defined as kids. Those persons, that are depending on the presence of a real
-!. person are called kids in the presenceaggregation script, even though I use it for a my daughter and my officeuser. 
-!. When I'm at home and my office computer has a lit screen, then my office is 
+!. person are called kids in the presenceaggregation script, even though I use it for a my daughter and my officeuser.
+!. When I'm at home and my office computer has a lit screen, then my office is
 !. getting warm.
 !. This can also be used for shift workers to have three depending users that have
-!. differrent work times an those are present depending on a calender and the presence 
+!. differrent work times an those are present depending on a calender and the presence
 !. of the real user.
 
-!--- no user setable parts below this point 
+!--- no user setable parts below this point
 !.
 string  currentyearmonthday =   system.Date("%F ");
 integer timenow             =   (currentyearmonthday#system.Date("%X")).ToTime().ToInteger();
@@ -84,7 +84,7 @@ integer lasttimerun         =   timenow-howoftendowerun;
 
 !.
 !. In case you have the system variable
-object     systemvariable	=   dom.GetObject(systemvariablename);
+object     systemvariable   =   dom.GetObject(systemvariablename);
 
 if( (systemvariablename.Length()>0) && (!systemvariable) )
 {                                                                                                           if(debug){WriteLine("Variable:"#systemvariablename#" does not exist - creating");}
@@ -100,17 +100,17 @@ if( (systemvariablename.Length()>0) && (!systemvariable) )
 }
 
 string  oldsystemvariablestring = "";
-string	newsystemvariablestring = "";
+string  newsystemvariablestring = "";
 
 if( systemvariable )
 {
-    string 	laststring	=   systemvariable.Variable().ToString();
-    integer	offset		=	laststring.Find("#");
-    
+    string  laststring  =   systemvariable.Variable().ToString();
+    integer offset      =   laststring.Find("#");
+
     if( -1 != offset )
     {
-    	lasttimerun				=   laststring.StrValueByIndex("#",0).ToTime().ToInteger();
-    	oldsystemvariablestring	=	laststring.Substr(offset+1,laststring.Length()-(offset+1));
+        lasttimerun             =   laststring.StrValueByIndex("#",0).ToTime().ToInteger();
+        oldsystemvariablestring =   laststring.Substr(offset+1,laststring.Length()-(offset+1));
     }
 }
                                                                                                         if(debug){WriteLine("timenow:"#timenow#"\t secondsthisday:"#secondsthisday#"\tlasttimerun"#lasttimerun.ToTime());}
@@ -131,7 +131,7 @@ if(true)
     string  substring;
     string  temporarytemperaturetable1;
     string  temporarytemperaturetable2;
-    
+
     foreach(substring, temperaturetable.Split(ascii_space) )
     {
         if( substring.Length() >0 ) { temporarytemperaturetable1 = temporarytemperaturetable1 # table_delimiter # substring; }
@@ -141,13 +141,13 @@ if(true)
         if( substring.Length() >0 ) { temporarytemperaturetable2 = temporarytemperaturetable2 # table_delimiter # substring; }
     }
     temperaturetable = "";
-    
+
     foreach(substring, temporarytemperaturetable2 )
     {
         if( substring.Length() >0 ) { temperaturetable = temperaturetable # table_delimiter # substring; }
     }
     temperaturetable = temperaturetable # ascii_newline;
-    
+
     if(debug) {WriteLine("temperaturetable:"#temperaturetable);}
 }
 
@@ -155,7 +155,7 @@ if(true)
 
 
 !.
-!. go through every person that is present and add figure out hte room preferences 
+!. go through every person that is present and add figure out hte room preferences
 !.
 
 string  roomtemperatures;
@@ -168,23 +168,23 @@ if(true)
 
     string  comforttemperatures;
     string  temperaturetableline;
-    
+
     foreach( temperaturetableline, temperaturetable.Split(ascii_newline) )
     {                                                                                                   !. if(debug){WriteLine("Line:"#temperaturetableline);}
         string  currentroom;
         integer currentchangetime;
         string  currentchangetemp;
-        
+
         string  temperaturetablepart;
 
         foreach(temperaturetablepart,temperaturetableline.Split(table_delimiter))
         {
             integer partlength = temperaturetablepart.Length();
-        
+
             if( partlength > 0 )
             {                                                                                           !. if(debug){WriteLine("\nPart:"#temperaturetablepart#" length:"#partlength);}
                 integer colonposition   = temperaturetablepart.Find(":");
-    
+
                 if( -1 == colonposition )
                 {
                     currentroom         = temperaturetablepart;                                         if(debug){WriteLine("\tcurrentroom:"#temperaturetablepart);}
@@ -192,18 +192,18 @@ if(true)
                     currentchangetemp   = "-1";
                 }
                 else
-                {                                                                                                   
+                {
                     if( colonposition == (partlength-1) )
-                    {                                                                                                   
+                    {
                         currentperson = temperaturetablepart.Substr(0,partlength-1);                    if(debug){WriteLine("\nPerson:"#currentperson);}
-                        
+
                         object  personvariable    = dom.GetObject(currentperson);
-                        
+
                         if( personvariable )
                         {
                                     personispresent     = personvariable.Value();
                             boolean personwaspresent    = personvariable.LastValue();
-                        
+
                             if( personispresent != personwaspresent )
                             {
                                 personchangedtime = personvariable.Timestamp().ToInteger();
@@ -277,20 +277,20 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
     integer somebodychangedtime         = -1;
     string  thermostatdevices;
     string  channelid;
-    
+
     foreach(channelid,dom.GetObject(room).EnumUsedIDs())
     {                                                                                                   !.if(debug){WriteLine("\t channelid:"#channelid);}
-        object  channel             = dom.GetObject(channelid);                                         if(debug){WriteLine("\t channel:"#channel);}
-        string  functionID;
-        
-        foreach(functionID,channel.ChnFunction().EnumUsedIDs())
-        {
-            object function=dom.GetObject(functionID);                                                      
-            
-            if( heatingfunctionname == function.Name() )
+        object  channel = dom.GetObject(channelid);                                                     if(debug){WriteLine("\t channel:"#channel);}
+        string  functionid;
+
+        foreach(functionid,channel.ChnFunction())
+        {                                                                                                if(debug){WriteLine("\t functionid:"#functionid); }
+            string functionname = dom.GetObject(functionid);                                             if(debug){WriteLine("\t functionname:"#functionname); }
+
+            if( heatingfunctionname == functionname )
             {
-                object  device      = dom.GetObject(channel.Device());                                  !.if(debug){WriteLine("\t device:"#device);}
-                string  devicehssid = device.HSSID();                                                   if(debug){WriteLine("\t devicehssid:"#devicehssid);}
+                object  device      = dom.GetObject(channel.Device());                                  if(debug){WriteLine("\t device:"#device);}
+                string  devicehssid = device.HssType();                                                   if(debug){WriteLine("\t devicehssid:"#devicehssid);}
 
                 if( "HM-CC-RT-DN" == devicehssid )
                 {
@@ -318,7 +318,7 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
 
                                         if( datapoint.Value() )
                                         {
-                                            openwindowordoor = true;                                    
+                                            openwindowordoor = true;
                                         }
                                     }
                                     else
@@ -327,7 +327,7 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                                         {                                                               if(debug){WriteLine("\t Somebody is present in room:"#datapoint.Value());}
                                             somebodyispresent = true;
                                         }
-                                    }                                               
+                                    }
                                     integer lastactiontime = channel.LastDPActionTime().ToInteger();    if(debug){WriteLine("\t lastactiontime:"#lastactiontime.ToTime());}
                                     if( somebodychangedtime < lastactiontime )
                                     {
@@ -335,15 +335,15 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                                     }
                                 }
                             }
-                        }                           
+                        }
                     }
                 }                                                                                       if(debug){WriteLine("");}
             }
         }
     }
-    
+
     if(debug){ WriteLine("\tThermostats:"#thermostatdevices#"\tSomebodyispresent in room:"#somebodyispresent#" since:"#somebodychangedtime.ToTime()#"\twindow or door open:"#openwindowordoor);}
-    
+
     if( thermostatdevices.Length() )
     {
         real    newtemp     = miniumroomtemp;
@@ -361,17 +361,17 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
             {
                 if( roomtemperatureset.Length() > 0 )
                 {                                                                                           !.if(debug){WriteLine("\t testing room:"#roomtemperatureset);}
-                    string  roomnameset =   roomtemperatureset.StrValueByIndex(",",0).ToString();           
-                    
+                    string  roomnameset =   roomtemperatureset.StrValueByIndex(",",0).ToString();
+
                     if( (roomnameset == room) || (roomnameset==defaultroomname) )
                     {                                                                                       !.if(debug){WriteLine("\t found room:"#roomtemperatureset);}
                         integer newtemptime;
                         real    newtempset;
                         string  newtempperson   =   roomtemperatureset.StrValueByIndex(",",3).ToString();
-                        
+
                         if(newtempperson == comfortname)
                         {
-                            if( !somebodyispresent ) 
+                            if( !somebodyispresent )
                             {
                                 newtempset = miniumroomtemp;
                             }
@@ -398,13 +398,13 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                 }
             }
         }                                                                                                   !.if(debug){WriteLine("\n"#room#"\n\t newtemp:"#newtemp#"\tnewtime:"#newtime.ToTime());}
-        
-        
+
+
         if(     (!letuserschangeinbetween)
             ||  (newtime > (lasttimerun-howoftendowerun)) )
         {                                                                                                   if(debug){WriteLine("WILL SET as it has changed. lastchange:"#newtime.ToTime()#" lasttime:"#lasttimerun.ToTime());};
-           	newsystemvariablestring = newsystemvariablestring #room #":"# newtemp # ",";
-            
+            newsystemvariablestring = newsystemvariablestring #room #":"# newtemp # ",";
+
             string  thermostatchanneladdress;
             foreach(thermostatchanneladdress,thermostatdevices)
             {
@@ -424,10 +424,10 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                            currentmode = 0;
                         }
                     }
-                    if( 0 == currentmode )                                                                      
+                    if( 0 == currentmode )
                     {
                         real    termostattempcurrent    = dom.GetObject(thermostatchanneladdress#".SET_TEMPERATURE").Value();         if(debug){WriteLine("\t settemp: "#termostattempcurrent);}
-                        
+
                         if( (!windowordoorsensorpresent) && (termostattempcurrent == openwindowtemp) )
                         {
                                                                                                             if(debug){WriteLine("\t no window or door present, but thermostat is set to openwindowtemp. Ignoring set temperature");}
@@ -448,11 +448,11 @@ foreach( roomid, dom.GetObject(ID_ROOMS).EnumUsedIDs() )
                                                                                                             if(debug){WriteLine("NOTHING TO set as it has not changed. lastchange:"#newtime.ToTime()#" lasttime:"#lasttimerun.ToTime());};
         }
     }
-} 
+}
 
 
 if( systemvariable && (oldsystemvariablestring != newsystemvariablestring) )
-{																										if(debug){WriteLine("systemvariable changed\nfrom:\t" # oldsystemvariablestring # "\nto:\t:" # newsystemvariablestring);}
-	if(!debug){systemvariable.State(system.Date("%F %X") #"#"# newsystemvariablestring);}
+{                                                                                                       if(debug){WriteLine("systemvariable changed\nfrom:\t" # oldsystemvariablestring # "\nto:\t:" # newsystemvariablestring);}
+    if(!debug){systemvariable.State(system.Date("%F %X") #"#"# newsystemvariablestring);}
 }
 
