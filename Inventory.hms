@@ -23,7 +23,7 @@ string  deviceid;
 foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs()) 
 {
     var     device      = dom.GetObject(deviceid);                                              if(debug){WriteLine("Device:"#device#" (id:"#deviceid#")");}
-    string  devicetype  = device.HSSID();                                                       if(debug){WriteLine("Devicetype:"#devicetype);}
+    string  devicetype  = device.HssType();                                                     if(debug){WriteLine("Devicetype:"#devicetype);}
 
     devicecounter   = devicecounter + 1;
     devicesconcat   = devicesconcat # "\t" # devicetype;
@@ -41,15 +41,6 @@ foreach(deviceid, dom.GetObject(ID_DEVICES).EnumUsedIDs())
     }
 }                                                                                               if(debug){WriteLine(channelcount # " channels " # devicecounter # " devices " # devicetypecount # " devicetypes");}
 
-
-
-string input = "/bin/sh -c 'cat /www/webui/js/lang/"#language#"/translate.lang.deviceDescription.js|sed -r \"s/%DF/ss/g;s/%FC/ue/g;s/%E4/ae/g;s/%F6/oe/g;s/(^\s+|,\s*\$)//g;s/\\"\\s*:\\s*\\"/\\":\\"/g;s/\\"//g;s/^(HM\-RCV\-50:).*\$/\1CCU2 System/;\"|awk -F : -v ORS=, \"{if(length(\$1)>3 && length(\$2)>3) print \$1\\",\\"\$2;}\"|sed \"s/,\$//;\" ";
-string typenames;
-string stderr;
-system.Exec(input, &typenames,&stderr);                                                         if(debug){WriteLine("Type to Name array:" #typenames)};
-
-
-
 if( "de" == language )
 {
     WriteLine(channelcount # " Kanaele in " # devicecounter # " Geraeten, " # devicetypecount # " Geraetetypen:");
@@ -58,6 +49,12 @@ else
 {
     WriteLine(channelcount # " channels in " # devicecounter # " devices, " # devicetypecount # " devicetypes:");
 }
+
+string typenames;
+
+!. string input = "/bin/sh -c 'cat /www/webui/js/lang/"#language#"/translate.lang.deviceDescription.js|sed -r \"s/%DF/ss/g;s/%FC/ue/g;s/%E4/ae/g;s/%F6/oe/g;s/(^\s+|,\s*\$)//g;s/\\"\\s*:\\s*\\"/\\":\\"/g;s/\\"//g;s/^(HM\-RCV\-50:).*\$/\1CCU2 System/;\"|awk -F : -v ORS=, \"{if(length(\$1)>3 && length(\$2)>3) print \$1\\",\\"\$2;}\"|sed \"s/,\$//;\" ";
+!. string stderr;
+!. system.Exec(input, &typenames,&stderr);                                                         if(debug){WriteLine("Type to Name array:" #typenames)};
 
 
 
