@@ -89,8 +89,10 @@ Usually that is the case after a vacation, then I want to make sure I can take a
 -------------
 Creates a inventory of your devices (in english or german) like this:
 
-	104 Kanaele in 12 Geraeten 6 Geraetetypen:
-	1x HM-RCV-50(CCU2 System), 7x HM-CC-RT-DN(Funk-Heizkoerperthermostat), 1x HM-LC-Sw4-SM(Funk-Schaltaktor 4-fach), 1x HM-LC-Sw1PBU-FM(Funk-Schaltaktor 1-fach fuer Markenschalter), 1x HM-ES-PMSw1-Pl(Funk-Schaltaktor mit Leistungsmessung), 1x HM-Sec-SC-2(Funk-Tuer-/ Fensterkontakt)
+	212 Kanaele in 38 Geraeten, 13 Geraetetypen:
+	3x HM-LC-Sw1PBU-FM, 7x HM-ES-PMSw1-Pl, 7x HM-Sec-SCo, 5x HM-Sec-SD, 7x HM-CC-RT-DN, 1x HM-RCV-50, 1x HM-Sec-SC-2, 1x HM-ES-TX-WM, 2x HM-Sec-WDS-2, 1x HM-LC-Sw4-SM, 1x HmIP-RCV-50, 1x HM-Sec-SD-Team, 1x HM-PB-2-WM55
+
+
 
 
 
